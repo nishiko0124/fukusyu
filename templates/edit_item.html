@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>項目を編集</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f7f3e9; --card-color: #ffffff; --text-color: #5d4037;
+            --border-color: #d7ccc8; --success-color: #388e3c;
+            --font-family: 'M PLUS Rounded 1c', sans-serif;
+        }
+        body { font-family: var(--font-family); background-color: var(--bg-color); color: var(--text-color); padding: 20px; max-width: 600px; margin: auto; }
+        .container { background-color: var(--card-color); padding: 20px 30px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); }
+        h2 { font-weight: 700; }
+        input { width: 95%; padding: 10px; margin-bottom: 15px; border: 1px solid var(--border-color); border-radius: 8px; font-family: var(--font-family); }
+        button { padding: 10px 20px; border: none; border-radius: 8px; color: white; background-color: var(--success-color); cursor: pointer; font-family: var(--font-family); font-weight: 700; }
+        a { color: var(--text-color); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>項目を編集</h2>
+        <form action="{{ url_for('edit_item', item_id=item.id) }}" method="POST">
+            <p>
+                項目名:<br>
+                <input type="text" name="topic" value="{{ item.topic }}" required>
+            </p>
+            <p>
+                関連URL:<br>
+                <input type="text" name="url" value="{{ item.url or '' }}">
+            </p>
+            <p>
+                カテゴリ:<br>
+                <input type="text" name="category" value="{{ item.category }}">
+            </p>
+            <button type="submit">更新</button>
+        </form>
+        <hr>
+        <a href="{{ url_for('index') }}">キャンセルして戻る</a>
+    </div>
+</body>
+</html>

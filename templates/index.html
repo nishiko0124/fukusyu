@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>復習タイマー</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f7f3e9; --card-color: #ffffff; --text-color: #5d4037;
+            --text-color-dark: #4e342e; --subtle-text-color: #a1887f; --border-color: #d7ccc8;
+            --accent-color: #d32f2f; --accent-color-dark: #b71c1c; --danger-color: #d32f2f;
+            --success-color: #388e3c; --warning-color: #ffa000; --info-color: #3498db;
+            --font-family: 'M PLUS Rounded 1c', sans-serif;
+        }
+        body { font-family: var(--font-family); background-color: var(--bg-color); color: var(--text-color); margin: 0 auto; padding: 20px; max-width: 800px; }
+        .container { background-color: var(--card-color); padding: 20px 30px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); }
+        h1, h2 { font-weight: 700; }
+        h3 { font-size: 1.1em; border-left: 5px solid var(--accent-color); padding-left: 10px; margin-top: 30px; }
+        hr { border: none; border-top: 1px solid var(--border-color); margin: 40px 0; }
+        .item { border: 1px solid var(--border-color); padding: 20px; margin-bottom: 20px; border-radius: 10px; }
+        .item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1em; }
+        .item-header h4 { margin-top: 0; margin-bottom: 0; font-weight: 700; font-size: 1.25rem; }
+        .item-header h4 a { color: var(--text-color); text-decoration: none; }
+        .item-header h4 a:hover { text-decoration: underline; }
+        .review-actions form, .add-form-actions { display: flex; gap: 10px; margin-top: 15px; margin-bottom: 0; }
+        button { padding: 10px 15px; border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: 700; font-family: var(--font-family); }
+        button:active { transform: translateY(2px); opacity: 0.9; }
+        .btn-again { background-color: var(--warning-color); color: var(--text-color); }
+        .btn-good { background-color: var(--info-color); }
+        .btn-perfect { background-color: var(--success-color); }
+        /* ▼▼▼【修正点1】編集・削除ボタンのスタイルを統一 ▼▼▼ */
+        .btn-update {
+            background-color: var(--subtle-text-color);
+            padding: 5px 10px;
+            font-size: 0.8em;
+            text-decoration: none; /* aタグの下線を消す */
+            display: inline-block;
+            color: white !important; /* 文字色を白に強制 */
+            border-radius: 8px; /* ボタンの角を丸める */
+        }
+        .flash-message { padding: 15px; margin-bottom: 20px; border-radius: 8px; color: white; font-weight: bold; }
+        .flash-message.success { background-color: var(--success-color); }
+        .flash-message.danger { background-color: var(--danger-color); }
+        .flash-message.info { background-color: var(--subtle-text-color); }
+        .setup-link { text-align: right; margin: -10px 0 20px 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        th { font-weight: 700; }
+        .add-form input { width: 95%; padding: 8px; margin-bottom: 10px; border: 1px solid var(--border-color); border-radius: 4px; }
+        .date-form { display: flex; align-items: center; gap: 8px; }
+        .date-form input[type="date"] { padding: 4px; }
+    </style>
+</head>
+<body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <div class="container">
+        <h1>復習タイマー</h1>
+        <div class="setup-link"><a href="{{ url_for('bookmarklet') }}">ブックマークレット設定</a></div>
+        <h2>今日復習する項目</h2>
+        {% if items_by_cat %}
+            {% for category, items in items_by_cat.items() %}
+                <h3>{{ category }}</h3>
+                {% for item in items %}
+                <div class="item">
+                    <div class="item-header">
+                        <h4>
+                            {% if item.url %}<a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.topic }}</a>{% else %}{{ item.topic }}{% endif %}
+                        </h4>
+                    </div>
+                    <p>追加日: {{ item.date_added.strftime('%Y年%m月%d日') }} / 復習回数: {{ item.review_level }}</p>
+                    <div class="review-actions">
+                        <form action="{{ url_for('review_item', item_id=item.id) }}" method="POST">
+                            <button type="submit" name="confidence" value="again" class="btn-again">できなかった</button>
+                            <button type="submit" name="confidence" value="good" class="btn-good">できた</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endfor %}
+        {% else %}
+            <p>今日復習する項目はありません。よく頑張りました！👏</p>
+        {% endif %}
+        <hr>
+        <h2>新しい項目を手動で登録</h2>
+        <form action="{{ url_for('add_item') }}" method="POST" class="add-form">
+            項目名: <input type="text" name="topic" required><br>
+            関連URL (任意): <input type="text" name="url"><br>
+            カテゴリ (任意): <input type="text" name="category" placeholder="例: 本,教材 etc..."><br>
+            <div class="add-form-actions">
+                <button type="submit" name="initial_confidence" value="again" class="btn-again">登録 (むずかしかった)</button>
+                <button type="submit" name="initial_confidence" value="good" class="btn-good">登録 (いいかんじ！)</button>
+            </div>
+        </form>
+        <hr>
+        <h2>登録済みの全項目リスト</h2>
+        {% if all_items_by_cat %}
+            {% for category, items in all_items_by_cat.items() %}
+                <h3>{{ category }}</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>項目名</th>
+                            <th>次回復習日</th>
+                            <th>回数</th>
+                            <th>日付変更</th>
+                            <th></th> </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>
+                                {% if item.url %}<a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.topic }}</a>{% else %}{{ item.topic }}{% endif %}
+                            </td>
+                            <td>{{ item.next_review_date.strftime('%Y年%m月%d日') }}</td>
+                            <td>{{ item.review_level }}</td>
+                            <td>
+                                <form action="{{ url_for('update_date', item_id=item.id) }}" method="POST" class="date-form">
+                                    <input type="date" name="new_date" value="{{ item.next_review_date.strftime('%Y-%m-%d') }}" min="{{ today_str }}">
+                                    <button type="submit" class="btn-update">更新</button>
+                                </form>
+                            </td>
+                            <td style="display: flex; gap: 5px;">
+                                <a href="{{ url_for('edit_item', item_id=item.id) }}" class="btn-update" style="background-color: var(--info-color);">編集</a>
+                                <form action="{{ url_for('delete_item', item_id=item.id) }}" method="POST" onsubmit="return confirm('本当にこの項目を削除しますか？');" style="margin: 0;">
+                                    <button type="submit" class="btn-update" style="background-color: var(--danger-color);">削除</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endfor %}
+        {% else %}
+            <p>まだ項目は登録されていません。</p>
+            <p>上のフォームから新しい項目を登録してみましょう！👇</p>
+        {% endif %}
+    </div>
+</body>
+</html>

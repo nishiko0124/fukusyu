@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ブックマークレット設定</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'M PLUS Rounded 1c', sans-serif; padding: 20px; background-color: #f7f3e9; color: #5d4037; max-width: 600px; margin: auto; }
+        .bookmarklet {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #d32f2f;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            cursor: grab;
+        }
+    </style>
+</head>
+<body>
+    <h1>ブックマークレット設定</h1>
+    <p>以下のボタンをブラウザのお気に入りバー（ブックマークバー）にドラッグ＆ドロップしてください。</p>
+    <p>
+        <a class="bookmarklet" href="javascript:window.open('{{ url_for('add_item', _external=True) }}?title='+encodeURIComponent(document.title)+'&url='+encodeURIComponent(location.href),'add','width=500,height=300');">復習タイマーに追加</a>
+    </p>
+    <h2>使い方</h2>
+    <ol>
+        <li>復習したいWebページを開きます。</li>
+        <li>お気に入りバーに追加した「復習タイマーに追加」をクリックします。</li>
+        <li>自動で入力された内容を確認し、「登録」ボタンを押します。</li>
+    </ol>
+    <p><a href="{{ url_for('index') }}">メインページに戻る</a></p>
+</body>
+</html>
