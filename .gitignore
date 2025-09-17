@@ -2,3 +2,4 @@ venv/
 __pycache__/
 *.pyc
 project.db
+.DS_Store
