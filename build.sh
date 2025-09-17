@@ -4,7 +4,7 @@
 pip install -r requirements.txt
 
 # データベースのテーブルを作成
-flask shell << EOF
+python3 -m flask shell << EOF
 from app import db
 db.create_all()
 EOF
