@@ -299,7 +299,13 @@ def api_send_reminder():
     items = ReviewItem.query.filter(ReviewItem.next_review_date <= today).all()
     
     if not items:
-        return jsonify({'success': True, 'message': '今日の復習はありません'})
+        # 復習項目がなくてもテスト通知を送る
+        success, detail = send_line_message("🔔 復習フレンズからのテスト通知です！\n\n通知が届いていれば設定は完了です ✅")
+        return jsonify({
+            'success': success,
+            'message': 'テスト通知を送信しました' if success else f'エラー: {detail}',
+            'detail': detail
+        })
     
     message = f"\n📚 復習の時間です！\n\n"
     message += f"今日の復習: {len(items)}件\n\n"
