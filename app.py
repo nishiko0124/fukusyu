@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import date, timedelta, datetime
 from collections import defaultdict
@@ -145,3 +145,99 @@ def edit_item(item_id):
 @app.route('/bookmarklet')
 def bookmarklet():
     return render_template('bookmarklet.html')
+
+# --- ★★★【API】復習待ちの項目数を取得 ★★★ ---
+@app.route('/api/pending-reviews')
+def api_pending_reviews():
+    today = date.today()
+    items = ReviewItem.query.filter(ReviewItem.next_review_date <= today).all()
+    return jsonify({
+        'count': len(items),
+        'items': [{
+            'id': item.id,
+            'topic': item.topic,
+            'category': item.category,
+            'next_review_date': item.next_review_date.strftime('%Y-%m-%d'),
+            'review_level': item.review_level
+        } for item in items]
+    })
+
+# --- ★★★【API】全項目を取得 ★★★ ---
+@app.route('/api/items')
+def api_items():
+    items = ReviewItem.query.order_by(ReviewItem.next_review_date).all()
+    return jsonify({
+        'items': [{
+            'id': item.id,
+            'topic': item.topic,
+            'url': item.url,
+            'category': item.category,
+            'date_added': item.date_added.strftime('%Y-%m-%d'),
+            'next_review_date': item.next_review_date.strftime('%Y-%m-%d'),
+            'review_level': item.review_level
+        } for item in items]
+    })
+
+# --- ★★★【API】項目を追加（JSON対応） ★★★ ---
+@app.route('/api/add', methods=['POST'])
+def api_add_item():
+    data = request.get_json()
+    if not data or not data.get('topic'):
+        return jsonify({'error': '項目名は必須です'}), 400
+    
+    topic = data.get('topic')
+    url = data.get('url', '')
+    category = data.get('category', '一般').strip() or '一般'
+    initial_confidence = data.get('initial_confidence', 'again')
+    
+    review_level = 0
+    interval_days = REVIEW_INTERVALS[0]
+    if initial_confidence == 'good' and len(REVIEW_INTERVALS) > 1:
+        review_level = 1
+        interval_days = REVIEW_INTERVALS[1]
+    
+    new_item = ReviewItem(
+        topic=topic, url=url, category=category, review_level=review_level,
+        next_review_date=date.today() + timedelta(days=interval_days)
+    )
+    db.session.add(new_item)
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'item': {
+            'id': new_item.id,
+            'topic': new_item.topic,
+            'next_review_date': new_item.next_review_date.strftime('%Y-%m-%d'),
+            'interval_days': interval_days
+        }
+    })
+
+# --- ★★★【API】復習完了 ★★★ ---
+@app.route('/api/review/<int:item_id>', methods=['POST'])
+def api_review_item(item_id):
+    item = ReviewItem.query.get_or_404(item_id)
+    data = request.get_json() or {}
+    confidence = data.get('confidence', 'good')
+    
+    if confidence == 'again':
+        item.review_level = 0
+        interval_days = REVIEW_INTERVALS[0]
+    else:
+        if item.review_level < len(REVIEW_INTERVALS) - 1:
+            item.review_level += 1
+        interval_days = REVIEW_INTERVALS[item.review_level]
+    
+    item.next_review_date = date.today() + timedelta(days=interval_days)
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'item': {
+            'id': item.id,
+            'topic': item.topic,
+            'next_review_date': item.next_review_date.strftime('%Y-%m-%d'),
+            'review_level': item.review_level,
+            'interval_days': interval_days
+        }
+    })

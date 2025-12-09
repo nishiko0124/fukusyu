@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>復習タイマー</title>
+    <title>復習タイマー - 絶対覚える暗記アプリ</title>
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#d32f2f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="/static/icon-192.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
@@ -52,6 +57,73 @@
         .add-form input { width: 95%; padding: 8px; margin-bottom: 10px; border: 1px solid var(--border-color); border-radius: 4px; }
         .date-form { display: flex; align-items: center; gap: 8px; }
         .date-form input[type="date"] { padding: 4px; }
+        
+        /* ▼▼▼ 通知設定パネル ▼▼▼ */
+        .notification-panel {
+            background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .notification-panel h3 {
+            border-left: none;
+            margin-top: 0;
+            color: white;
+        }
+        .notification-panel p {
+            margin: 10px 0;
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        .notification-btn {
+            background-color: white;
+            color: var(--accent-color);
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 1em;
+            margin-right: 10px;
+        }
+        .notification-btn:hover {
+            background-color: #f5f5f5;
+        }
+        .notification-btn:disabled {
+            background-color: #ccc;
+            color: #666;
+            cursor: default;
+        }
+        .settings-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .settings-toggle input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+        }
+        .settings-toggle label {
+            font-weight: 500;
+        }
+        
+        /* ▼▼▼ PWAインストールバナー ▼▼▼ */
+        .install-banner {
+            background-color: var(--info-color);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .install-banner.show { display: block; }
+        .install-banner button {
+            background-color: white;
+            color: var(--info-color);
+            margin-left: 15px;
+        }
     </style>
 </head>
 <body>
@@ -63,7 +135,26 @@
         {% endif %}
     {% endwith %}
     <div class="container">
-        <h1>復習タイマー</h1>
+        <h1>🧠 復習タイマー</h1>
+        <p style="margin-top: -10px; color: var(--subtle-text-color);">忘却曲線に基づくしつこいリマインダーで絶対に覚える！</p>
+        
+        <!-- 通知設定パネル -->
+        <div class="notification-panel">
+            <h3>🔔 通知設定</h3>
+            <p>復習の時間になったら通知でお知らせします。しつこいモードを有効にすると、確認するまで何度もリマインドします！</p>
+            <button id="enable-notifications" class="notification-btn">📲 通知を有効にする</button>
+            <div class="settings-toggle">
+                <input type="checkbox" id="aggressive-mode" checked>
+                <label for="aggressive-mode">🔥 しつこいモード（確認するまで何度も通知）</label>
+            </div>
+        </div>
+        
+        <!-- PWAインストールバナー -->
+        <div id="install-banner" class="install-banner">
+            📱 ホーム画面に追加すると、アプリのように使えて通知も受け取れます！
+            <button id="install-btn">インストール</button>
+        </div>
+        
         <div class="setup-link"><a href="{{ url_for('bookmarklet') }}">ブックマークレット設定</a></div>
         <h2>今日復習する項目</h2>
         {% if items_by_cat %}
@@ -144,5 +235,43 @@
             <p>上のフォームから新しい項目を登録してみましょう！👇</p>
         {% endif %}
     </div>
+    
+    <!-- 通知用JavaScript -->
+    <script src="/static/notification.js"></script>
+    <script>
+        // PWAインストールプロンプト
+        let deferredPrompt;
+        const installBanner = document.getElementById('install-banner');
+        const installBtn = document.getElementById('install-btn');
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBanner.classList.add('show');
+        });
+        
+        if (installBtn) {
+            installBtn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        installBanner.classList.remove('show');
+                    }
+                    deferredPrompt = null;
+                }
+            });
+        }
+        
+        // インストール済みの場合はバナーを非表示
+        window.addEventListener('appinstalled', () => {
+            installBanner.classList.remove('show');
+        });
+        
+        // スタンドアロンモードで実行中の場合もバナーを非表示
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            installBanner.classList.remove('show');
+        }
+    </script>
 </body>
 </html>
