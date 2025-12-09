@@ -163,6 +163,7 @@
         }
         
         .item-bottom .del { color: #c00; background: #fee; }
+        .item-bottom .edit { color: #333; background: #f5f5f5; }
         
         /* 通知 */
         .notify {
@@ -226,11 +227,6 @@
 
     <h1>復習</h1>
 
-    <div class="notify">
-        <span>LINE通知</span>
-        <button onclick="testLine()">テスト</button>
-    </div>
-
     <!-- 追加 -->
     <div class="section">
         <div class="add-box">
@@ -278,10 +274,11 @@
                 {% for item in items %}
                 <div class="item">
                     <div class="item-top">
-                        <span class="item-text">{{ item.topic }}</span>
+                        <span class="item-text" id="text-{{ item.id }}">{{ item.topic }}</span>
                         <span class="tag">Lv.{{ item.review_level }}</span>
                     </div>
                     <div class="item-bottom">
+                        <button onclick="editItem({{ item.id }})" class="edit">編集</button>
                         <form action="{{ url_for('update_date', item_id=item.id) }}" method="POST" style="display:contents;">
                             <input type="date" name="new_date" value="{{ item.next_review_date.strftime('%Y-%m-%d') }}">
                             <button type="submit">変更</button>
@@ -298,11 +295,51 @@
         {% endif %}
     </div>
 
+    <!-- フッター -->
+    <div style="margin-top:40px; padding:16px 0; border-top:1px solid #eee; text-align:center;">
+        <button onclick="sendNow()" style="background:none; border:none; color:#999; font-size:0.75rem; cursor:pointer;">今すぐ通知</button>
+    </div>
+
     <script>
-        async function testLine() {
+        async function sendNow() {
             const r = await fetch('/api/send-reminder', { method: 'POST' });
             const d = await r.json();
             alert(d.message || (d.success ? '送信OK' : 'エラー'));
+        }
+        
+        function editItem(id) {
+            const span = document.getElementById('text-' + id);
+            const current = span.textContent;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = current;
+            input.style.cssText = 'width:100%; padding:4px; font-size:0.9rem; border:1px solid #333; border-radius:4px;';
+            
+            input.onblur = async function() {
+                const newVal = input.value.trim();
+                if (newVal && newVal !== current) {
+                    const r = await fetch('/api/edit/' + id, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({topic: newVal})
+                    });
+                    if (r.ok) {
+                        span.textContent = newVal;
+                    }
+                }
+                span.style.display = '';
+                input.remove();
+            };
+            
+            input.onkeydown = function(e) {
+                if (e.key === 'Enter') input.blur();
+                if (e.key === 'Escape') { input.value = current; input.blur(); }
+            };
+            
+            span.style.display = 'none';
+            span.parentNode.insertBefore(input, span);
+            input.focus();
+            input.select();
         }
     </script>
 </body>

@@ -177,6 +177,19 @@ def api_pending_reviews():
         } for item in items]
     })
 
+# --- ★★★【API】項目を編集（インライン用） ★★★ ---
+@app.route('/api/edit/<int:item_id>', methods=['POST'])
+def api_edit_item(item_id):
+    item = ReviewItem.query.get_or_404(item_id)
+    data = request.get_json()
+    if data and data.get('topic'):
+        item.topic = data['topic'].strip()
+        if data.get('url') is not None:
+            item.url = data['url']
+        db.session.commit()
+        return jsonify({'success': True, 'topic': item.topic})
+    return jsonify({'error': '項目名は必須です'}), 400
+
 # --- ★★★【API】全項目を取得 ★★★ ---
 @app.route('/api/items')
 def api_items():
