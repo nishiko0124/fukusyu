@@ -24,10 +24,9 @@ LINE_USER_ID = os.environ.get('LINE_USER_ID')
 db = SQLAlchemy(app)
 
 # --- ★★★ 復習間隔をここで自由に設定 ★★★ ---
-# 時間単位: 'h'をつける（1h=1時間後、3h=3時間後など）
-# 日単位: 数字のみ
-REVIEW_INTERVALS_HOURS = [1, 3, 6]  # 当日: 1時間後、3時間後、6時間後
-REVIEW_INTERVALS_DAYS = [1, 3, 7, 16, 35, 60, 120]  # 翌日以降
+# Lv.0〜3の4段階、完了後は30日ループ
+REVIEW_INTERVALS_DAYS = [1, 3, 7, 16]  # Lv.0〜3
+COMPLETED_INTERVAL = 30  # 完了後のループ間隔
 
 
 # --- データベースのモデル定義 ---
@@ -39,6 +38,7 @@ class ReviewItem(db.Model):
     date_added = db.Column(db.Date, nullable=False, default=date.today)
     review_level = db.Column(db.Integer, nullable=False, default=0)
     next_review_date = db.Column(db.Date, nullable=False)
+    is_completed = db.Column(db.Boolean, nullable=False, default=False)  # 完了フラグ
 
     def __repr__(self):
         return f'<ReviewItem {self.topic}>'
@@ -100,16 +100,29 @@ def review_item(item_id):
     item = ReviewItem.query.get_or_404(item_id)
     confidence = request.form.get('confidence')
     if confidence == 'again':
+        # もう1回: 完了解除、Lv.0に戻る
         item.review_level = 0
+        item.is_completed = False
         interval_days = REVIEW_INTERVALS_DAYS[0]
         item.next_review_date = date.today() + timedelta(days=interval_days)
         flash(f"もう1回", "info")
     else:
-        if item.review_level < len(REVIEW_INTERVALS_DAYS) - 1:
-             item.review_level += 1
-        interval_days = REVIEW_INTERVALS_DAYS[item.review_level]
-        item.next_review_date = date.today() + timedelta(days=interval_days)
-        flash(f"覚えた", "success")
+        # 覚えた
+        if item.is_completed:
+            # 既に完了済み: 30日後にループ
+            item.next_review_date = date.today() + timedelta(days=COMPLETED_INTERVAL)
+            flash(f"完了", "success")
+        elif item.review_level >= len(REVIEW_INTERVALS_DAYS) - 1:
+            # 最終レベルクリア: 完了に
+            item.is_completed = True
+            item.next_review_date = date.today() + timedelta(days=COMPLETED_INTERVAL)
+            flash(f"完了", "success")
+        else:
+            # 次のレベルへ
+            item.review_level += 1
+            interval_days = REVIEW_INTERVALS_DAYS[item.review_level]
+            item.next_review_date = date.today() + timedelta(days=interval_days)
+            flash(f"覚えた", "success")
     db.session.commit()
     return redirect(url_for('index'))
 

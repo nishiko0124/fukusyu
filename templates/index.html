@@ -259,10 +259,10 @@
             {% for category, items in items_by_cat.items() %}
                 <div class="cat-header">{{ category }}</div>
                 {% for item in items %}
-                <div class="card {% if item.review_level == 0 %}urgent{% endif %}">
+                <div class="card {% if item.review_level == 0 and not item.is_completed %}urgent{% endif %}">
                     <div class="card-text">{{ item.topic }}</div>
                     <div class="card-row">
-                        <span class="card-meta">Lv.{{ item.review_level }}</span>
+                        <span class="card-meta">{% if item.is_completed %}完了{% else %}Lv.{{ item.review_level }}{% endif %}</span>
                         <div class="card-btns">
                             <form action="{{ url_for('review_item', item_id=item.id) }}" method="POST" style="display:contents;">
                                 <button type="submit" name="confidence" value="again" class="btn-light">もう1回</button>
@@ -288,7 +288,7 @@
                 <div class="item">
                     <div class="item-top">
                         <span class="item-text" id="text-{{ item.id }}">{{ item.topic }}</span>
-                        <span class="tag">Lv.{{ item.review_level }}</span>
+                        <span class="tag">{% if item.is_completed %}完了{% else %}Lv.{{ item.review_level }}{% endif %}</span>
                     </div>
                     <div class="item-bottom">
                         <button onclick="editItem({{ item.id }})" class="edit">編集</button>
