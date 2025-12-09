@@ -7,272 +7,211 @@
     <link rel="manifest" href="/static/manifest.json">
     <meta name="theme-color" content="#000">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <link rel="apple-touch-icon" href="/static/icon-192.png">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #fafafa;
+            background: #f5f5f5;
             color: #333;
             line-height: 1.5;
-            padding: 20px;
-            max-width: 600px;
+            padding: 16px;
+            max-width: 500px;
             margin: 0 auto;
         }
         
-        h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
+        h1 { font-size: 1.3rem; margin-bottom: 16px; }
         
-        .section {
-            margin-bottom: 30px;
-        }
+        .section { margin-bottom: 24px; }
         
-        .section-title {
-            font-size: 0.8rem;
+        .label {
+            font-size: 0.7rem;
             color: #888;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
+        
+        /* 入力 */
+        .add-box {
+            background: #fff;
+            border-radius: 10px;
+            padding: 12px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            resize: none;
+            margin-bottom: 8px;
+        }
+        
+        textarea:focus { outline: none; border-color: #333; }
+        
+        .add-btns {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .add-btns button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        
+        .btn-dark { background: #333; color: #fff; }
+        .btn-light { background: #eee; color: #333; }
         
         /* カード */
         .card {
             background: #fff;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
         
-        .card.urgent {
-            border-left: 3px solid #ff4444;
-        }
+        .card.urgent { border-left: 3px solid #e53935; }
         
-        .card-content {
-            font-size: 1rem;
-            margin-bottom: 12px;
+        .card-text {
+            font-size: 0.95rem;
+            margin-bottom: 8px;
             white-space: pre-wrap;
             word-break: break-word;
         }
         
-        .card-content a {
-            color: #333;
-            text-decoration: none;
+        .card-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
         }
         
         .card-meta {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: #999;
-            margin-bottom: 12px;
+            flex: 1;
         }
         
-        .card-actions {
+        .card-btns {
             display: flex;
-            gap: 8px;
+            gap: 4px;
         }
         
-        /* ボタン */
-        button, .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        
-        button:hover, .btn:hover {
-            opacity: 0.8;
-        }
-        
-        .btn-primary {
-            background: #333;
-            color: #fff;
-        }
-        
-        .btn-secondary {
-            background: #eee;
-            color: #333;
-        }
-        
-        .btn-small {
+        .card-btns button {
             padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
             font-size: 0.8rem;
+            cursor: pointer;
         }
         
-        /* 入力フォーム */
-        .input-group {
+        /* リスト項目 */
+        .item {
             background: #fff;
-            border-radius: 12px;
-            padding: 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-        }
-        
-        textarea, input[type="text"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #e0e0e0;
             border-radius: 8px;
-            font-size: 1rem;
-            font-family: inherit;
-            resize: none;
-            margin-bottom: 10px;
+            padding: 10px 12px;
+            margin-bottom: 6px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
         
-        textarea:focus, input:focus {
-            outline: none;
-            border-color: #333;
-        }
-        
-        .input-row {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-        
-        .input-row input {
-            flex: 1;
-            margin-bottom: 0;
-        }
-        
-        .submit-row {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .submit-row button {
-            flex: 1;
-        }
-        
-        /* リスト */
-        .list {
-            background: #fff;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-        }
-        
-        .list-item {
+        .item-top {
             display: flex;
             align-items: center;
-            padding: 14px 16px;
-            border-bottom: 1px solid #f0f0f0;
-            gap: 12px;
+            gap: 8px;
+            margin-bottom: 6px;
         }
         
-        .list-item:last-child {
-            border-bottom: none;
-        }
-        
-        .list-item-content {
+        .item-text {
             flex: 1;
-            min-width: 0;
-        }
-        
-        .list-item-title {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
         
-        .list-item-title a {
-            color: #333;
-            text-decoration: none;
-        }
-        
-        .list-item-meta {
-            font-size: 0.75rem;
-            color: #999;
-        }
-        
-        .list-item-date {
-            font-size: 0.8rem;
-            color: #666;
-        }
-        
-        .list-item-actions {
+        .item-bottom {
             display: flex;
+            align-items: center;
             gap: 6px;
+            font-size: 0.75rem;
         }
         
-        .list-item-actions a {
+        .item-bottom input[type="date"] {
+            padding: 4px 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+        
+        .item-bottom button {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            background: #eee;
             color: #666;
-            text-decoration: none;
-            font-size: 0.8rem;
         }
         
-        /* 通知バー */
-        .notify-bar {
+        .item-bottom .del { color: #c00; background: #fee; }
+        
+        /* 通知 */
+        .notify {
             background: #25D366;
             color: #fff;
-            padding: 12px 16px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
         
-        .notify-bar button {
+        .notify button {
             background: rgba(255,255,255,0.2);
             color: #fff;
-            padding: 6px 14px;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            cursor: pointer;
         }
         
         /* フラッシュ */
         .flash {
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 0.9rem;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
         }
-        
         .flash.success { background: #d4edda; color: #155724; }
         .flash.danger { background: #f8d7da; color: #721c24; }
         .flash.info { background: #e2e3e5; color: #383d41; }
         
-        /* 空状態 */
+        /* 空 */
         .empty {
             text-align: center;
-            padding: 40px 20px;
+            padding: 30px;
             color: #999;
+            font-size: 0.9rem;
         }
         
-        .empty-icon {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-        
-        /* カテゴリ */
-        .category-label {
-            font-size: 0.75rem;
-            color: #666;
+        .tag {
+            font-size: 0.65rem;
             background: #f0f0f0;
-            padding: 2px 8px;
-            border-radius: 4px;
-            margin-bottom: 8px;
-            display: inline-block;
-        }
-        
-        /* フッター */
-        footer {
-            text-align: center;
-            padding: 20px;
-            font-size: 0.8rem;
-            color: #999;
-        }
-        
-        footer a {
+            padding: 2px 6px;
+            border-radius: 3px;
             color: #666;
-            text-decoration: none;
-            margin: 0 10px;
         }
     </style>
 </head>
@@ -287,101 +226,83 @@
 
     <h1>📚 復習</h1>
 
-    <!-- LINE通知 -->
-    <div class="notify-bar">
-        <span>LINE通知でリマインド</span>
-        <button onclick="sendLineReminder()">テスト送信</button>
+    <div class="notify">
+        <span>LINE通知</span>
+        <button onclick="testLine()">テスト</button>
     </div>
 
-    <!-- 入力フォーム -->
+    <!-- 追加 -->
     <div class="section">
-        <div class="input-group">
+        <div class="add-box">
             <form action="{{ url_for('add_item') }}" method="POST">
-                <textarea name="topic" rows="3" placeholder="覚えたいことを入力..." required></textarea>
-                <div class="input-row">
-                    <input type="text" name="url" placeholder="URL（任意）">
-                    <input type="text" name="category" placeholder="カテゴリ">
-                </div>
-                <div class="submit-row">
-                    <button type="submit" name="initial_confidence" value="again" class="btn-secondary">😅 難しい</button>
-                    <button type="submit" name="initial_confidence" value="good" class="btn-primary">👍 OK</button>
+                <textarea name="topic" rows="2" placeholder="覚えたいことを入力..." required></textarea>
+                <input type="hidden" name="category" value="一般">
+                <div class="add-btns">
+                    <button type="submit" name="initial_confidence" value="again" class="btn-light">難しい</button>
+                    <button type="submit" name="initial_confidence" value="good" class="btn-dark">OK</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- 今日の復習 -->
+    <!-- 今日 -->
     <div class="section">
-        <div class="section-title">今日の復習 ({{ items_by_cat.values() | map('length') | sum }})</div>
-        
+        <div class="label">今日やる ({{ items_by_cat.values() | map('length') | sum }})</div>
         {% if items_by_cat %}
             {% for category, items in items_by_cat.items() %}
                 {% for item in items %}
                 <div class="card {% if item.review_level == 0 %}urgent{% endif %}">
-                    <span class="category-label">{{ category }}</span>
-                    <div class="card-content">{% if item.url %}<a href="{{ item.url }}" target="_blank">{{ item.topic }}</a>{% else %}{{ item.topic }}{% endif %}</div>
-                    <div class="card-meta">Lv.{{ item.review_level }} • {{ item.date_added.strftime('%m/%d') }}〜</div>
-                    <div class="card-actions">
-                        <form action="{{ url_for('review_item', item_id=item.id) }}" method="POST" style="display:contents;">
-                            <button type="submit" name="confidence" value="again" class="btn-secondary">もう1回</button>
-                            <button type="submit" name="confidence" value="good" class="btn-primary">覚えた</button>
+                    <div class="card-text">{{ item.topic }}</div>
+                    <div class="card-row">
+                        <span class="card-meta">Lv.{{ item.review_level }}</span>
+                        <div class="card-btns">
+                            <form action="{{ url_for('review_item', item_id=item.id) }}" method="POST" style="display:contents;">
+                                <button type="submit" name="confidence" value="again" class="btn-light">もう1回</button>
+                                <button type="submit" name="confidence" value="good" class="btn-dark">覚えた</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endfor %}
+        {% else %}
+            <div class="empty">✨ 今日は完了！</div>
+        {% endif %}
+    </div>
+
+    <!-- 全部 -->
+    <div class="section">
+        <div class="label">すべて ({{ all_items_by_cat.values() | map('length') | sum }})</div>
+        {% if all_items_by_cat %}
+            {% for category, items in all_items_by_cat.items() %}
+                {% for item in items %}
+                <div class="item">
+                    <div class="item-top">
+                        <span class="item-text">{{ item.topic }}</span>
+                        <span class="tag">Lv.{{ item.review_level }}</span>
+                    </div>
+                    <div class="item-bottom">
+                        <form action="{{ url_for('update_date', item_id=item.id) }}" method="POST" style="display:contents;">
+                            <input type="date" name="new_date" value="{{ item.next_review_date.strftime('%Y-%m-%d') }}">
+                            <button type="submit">変更</button>
+                        </form>
+                        <form action="{{ url_for('delete_item', item_id=item.id) }}" method="POST" style="display:contents;" onsubmit="return confirm('削除する？');">
+                            <button type="submit" class="del">削除</button>
                         </form>
                     </div>
                 </div>
                 {% endfor %}
             {% endfor %}
         {% else %}
-            <div class="empty">
-                <div class="empty-icon">✨</div>
-                <div>今日の復習完了！</div>
-            </div>
+            <div class="empty">まだ項目なし</div>
         {% endif %}
     </div>
-
-    <!-- 全項目 -->
-    <div class="section">
-        <div class="section-title">すべて ({{ all_items_by_cat.values() | map('length') | sum }})</div>
-        
-        {% if all_items_by_cat %}
-            <div class="list">
-                {% for category, items in all_items_by_cat.items() %}
-                    {% for item in items %}
-                    <div class="list-item">
-                        <div class="list-item-content">
-                            <div class="list-item-title">
-                                {% if item.url %}<a href="{{ item.url }}" target="_blank">{{ item.topic[:40] }}{% if item.topic|length > 40 %}...{% endif %}</a>{% else %}{{ item.topic[:40] }}{% if item.topic|length > 40 %}...{% endif %}{% endif %}
-                            </div>
-                            <div class="list-item-meta">{{ category }} • Lv.{{ item.review_level }}</div>
-                        </div>
-                        <div class="list-item-date">{{ item.next_review_date.strftime('%m/%d') }}</div>
-                        <div class="list-item-actions">
-                            <a href="{{ url_for('edit_item', item_id=item.id) }}">編集</a>
-                            <form action="{{ url_for('delete_item', item_id=item.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('削除？');">
-                                <button type="submit" style="background:none;color:#999;padding:0;font-size:0.8rem;">削除</button>
-                            </form>
-                        </div>
-                    </div>
-                    {% endfor %}
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="empty">
-                <div class="empty-icon">📝</div>
-                <div>まだ項目がありません</div>
-            </div>
-        {% endif %}
-    </div>
-
-    <footer>
-        <a href="{{ url_for('bookmarklet') }}">ブックマークレット</a>
-        <a href="/api/debug-line">LINE設定確認</a>
-    </footer>
 
     <script>
-        async function sendLineReminder() {
-            const res = await fetch('/api/send-reminder', { method: 'POST' });
-            const data = await res.json();
-            alert(data.message || (data.success ? '送信しました' : 'エラー: ' + (data.detail || '設定を確認')));
+        async function testLine() {
+            const r = await fetch('/api/send-reminder', { method: 'POST' });
+            const d = await r.json();
+            alert(d.message || (d.success ? '送信OK' : 'エラー'));
         }
     </script>
 </body>
