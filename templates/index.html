@@ -311,6 +311,13 @@
     <!-- フッター -->
     <div style="margin-top:40px; padding:16px 0; border-top:1px solid #eee; text-align:center;">
         <button onclick="sendNow()" style="background:none; border:none; color:#999; font-size:0.75rem; cursor:pointer;">今すぐ通知</button>
+        <span style="color:#ddd; margin:0 8px;">|</span>
+        <button onclick="exportData()" style="background:none; border:none; color:#999; font-size:0.75rem; cursor:pointer;">バックアップ</button>
+        <span style="color:#ddd; margin:0 8px;">|</span>
+        <label style="background:none; border:none; color:#999; font-size:0.75rem; cursor:pointer;">
+            復元
+            <input type="file" accept=".json" onchange="importData(event)" style="display:none;">
+        </label>
     </div>
 
     <script>
@@ -318,6 +325,37 @@
             const r = await fetch('/api/send-reminder', { method: 'POST' });
             const d = await r.json();
             alert(d.message || (d.success ? '送信OK' : 'エラー'));
+        }
+        
+        async function exportData() {
+            const r = await fetch('/api/export');
+            const data = await r.json();
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'fukusyu_backup_' + new Date().toISOString().slice(0,10) + '.json';
+            a.click();
+        }
+        
+        async function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (!confirm('バックアップから復元しますか？\n（既存データに追加されます）')) return;
+            const text = await file.text();
+            const data = JSON.parse(text);
+            const r = await fetch('/api/import', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            const result = await r.json();
+            if (result.success) {
+                alert(result.imported + '件復元しました');
+                location.reload();
+            } else {
+                alert('エラー: ' + result.error);
+            }
         }
         
         function editItem(id) {

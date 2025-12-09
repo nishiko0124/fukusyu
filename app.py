@@ -206,6 +206,48 @@ def api_items():
         } for item in items]
     })
 
+# --- ★★★【API】バックアップエクスポート ★★★ ---
+@app.route('/api/export')
+def api_export():
+    items = ReviewItem.query.all()
+    data = {
+        'exported_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'items': [{
+            'topic': item.topic,
+            'url': item.url,
+            'category': item.category,
+            'date_added': item.date_added.strftime('%Y-%m-%d'),
+            'next_review_date': item.next_review_date.strftime('%Y-%m-%d'),
+            'review_level': item.review_level
+        } for item in items]
+    }
+    return jsonify(data)
+
+# --- ★★★【API】バックアップインポート ★★★ ---
+@app.route('/api/import', methods=['POST'])
+def api_import():
+    data = request.get_json()
+    if not data or 'items' not in data:
+        return jsonify({'error': '無効なデータ'}), 400
+    
+    imported = 0
+    for item_data in data['items']:
+        if not item_data.get('topic'):
+            continue
+        new_item = ReviewItem(
+            topic=item_data['topic'],
+            url=item_data.get('url', ''),
+            category=item_data.get('category', '一般'),
+            date_added=datetime.strptime(item_data.get('date_added', date.today().strftime('%Y-%m-%d')), '%Y-%m-%d').date(),
+            next_review_date=datetime.strptime(item_data.get('next_review_date', date.today().strftime('%Y-%m-%d')), '%Y-%m-%d').date(),
+            review_level=item_data.get('review_level', 0)
+        )
+        db.session.add(new_item)
+        imported += 1
+    
+    db.session.commit()
+    return jsonify({'success': True, 'imported': imported})
+
 # --- ★★★【API】項目を追加（JSON対応） ★★★ ---
 @app.route('/api/add', methods=['POST'])
 def api_add_item():
