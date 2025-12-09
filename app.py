@@ -7,7 +7,13 @@ from collections import defaultdict
 # --- 基本設定 ---
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a-default-secret-key')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+
+# DATABASE_URL の処理（Railwayのpostgres://をpostgresql://に変換）
+database_url = os.environ.get('DATABASE_URL', 'sqlite:///reviews.db')
+if database_url.startswith('postgres://'):
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -241,3 +247,10 @@ def api_review_item(item_id):
             'interval_days': interval_days
         }
     })
+
+# --- データベース初期化 ---
+with app.app_context():
+    db.create_all()
+
+if __name__ == '__main__':
+    app.run(debug=True)
