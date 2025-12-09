@@ -3,450 +3,276 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>復習フレンズ</title>
+    <title>復習</title>
     <link rel="manifest" href="/static/manifest.json">
-    <meta name="theme-color" content="#c9514c">
+    <meta name="theme-color" content="#000">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="/static/icon-192.png">
     <style>
-        /* --- カラーパレット（呟きアプリ風） --- */
-        :root {
-            --bg-color: #fdfaf9;
-            --text-color: #5a4f4d;
-            --primary-color: #c9514c;
-            --primary-light: #eab6b3;
-            --accent-color: #4c8b8b;
-            --danger-color: #e53935;
-            --success-color: #388e3c;
-            --warning-color: #ffa000;
-            --card-bg: #ffffff;
-            --shadow: 0 4px 12px rgba(90, 79, 77, 0.1);
-        }
-        
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body {
-            font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", 'Helvetica Neue', Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #fafafa;
+            color: #333;
+            line-height: 1.5;
             padding: 20px;
-            line-height: 1.6;
-        }
-        
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        header h1 {
-            color: var(--primary-color);
-            font-weight: normal;
-            font-size: 1.8rem;
-            margin: 0;
-        }
-        
-        header p {
-            color: #999;
-            font-size: 0.9rem;
-            margin: 5px 0 0 0;
-        }
-        
-        main {
-            max-width: 800px;
+            max-width: 600px;
             margin: 0 auto;
         }
         
-        /* --- コントロールパネル --- */
-        .control-panel {
-            background-color: var(--card-bg);
-            padding: 25px;
-            border-radius: 20px;
-            box-shadow: var(--shadow);
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        
+        .section {
             margin-bottom: 30px;
         }
         
-        .control-panel h3 {
-            margin: 0 0 15px 0;
-            color: var(--primary-color);
-            font-size: 1.1rem;
-        }
-        
-        /* --- LINE通知パネル --- */
-        .line-panel {
-            background: linear-gradient(135deg, #00B900 0%, #00A000 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 16px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        
-        .line-panel .line-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .line-panel .line-icon {
-            font-size: 2rem;
-        }
-        
-        .line-panel p {
-            margin: 0;
-            font-size: 0.9rem;
-        }
-        
-        .line-btn {
-            background-color: white;
-            color: #00B900;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 25px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-        
-        .line-btn:hover {
-            background-color: #f5f5f5;
-        }
-        
-        /* --- フォーム --- */
-        input[type="text"], textarea {
-            width: 100%;
-            padding: 12px 16px;
-            margin-bottom: 12px;
-            border: 2px solid #edf2f7;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-family: inherit;
-            transition: border-color 0.3s;
-        }
-        
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: var(--primary-light);
-        }
-        
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-        
-        .form-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-        
-        .form-row input {
-            flex: 1;
-            margin-bottom: 0;
-        }
-        
-        button {
-            padding: 12px 24px;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: bold;
-            font-family: inherit;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        button:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-        }
-        
-        button:active {
-            transform: translateY(0);
-        }
-        
-        .btn-success { background-color: var(--success-color); }
-        .btn-warning { background-color: var(--warning-color); color: var(--text-color); }
-        .btn-danger { background-color: var(--danger-color); }
-        .btn-small {
-            padding: 8px 16px;
-            font-size: 0.85rem;
-        }
-        
-        /* --- セクションタイトル --- */
         .section-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 30px 0 20px 0;
-        }
-        
-        .section-title h2 {
-            margin: 0;
-            font-size: 1.2rem;
-            color: var(--text-color);
-            font-weight: normal;
-        }
-        
-        .section-title .count {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-        }
-        
-        /* --- カードグリッド --- */
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-        }
-        
-        /* --- 暗記カード --- */
-        .memo-card {
-            background-color: var(--card-bg);
-            border-radius: 16px;
-            box-shadow: var(--shadow);
-            overflow: hidden;
-            transition: all 0.2s ease;
-            border-left: 5px solid var(--primary-light);
-        }
-        
-        .memo-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(90, 79, 77, 0.15);
-        }
-        
-        .memo-card.urgent {
-            border-left-color: var(--danger-color);
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { box-shadow: var(--shadow); }
-            50% { box-shadow: 0 4px 20px rgba(229, 57, 53, 0.3); }
-        }
-        
-        .card-header {
-            padding: 15px 20px;
-            background-color: #fafafa;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .card-category {
             font-size: 0.8rem;
-            color: var(--primary-color);
-            background-color: var(--primary-light);
-            padding: 4px 10px;
-            border-radius: 12px;
-        }
-        
-        .card-level {
-            font-size: 0.75rem;
             color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
         }
         
-        .card-body {
-            padding: 20px;
+        /* カード */
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         }
         
-        .card-topic {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: var(--text-color);
-            margin: 0 0 10px 0;
-            line-height: 1.5;
-            word-break: break-word;
+        .card.urgent {
+            border-left: 3px solid #ff4444;
+        }
+        
+        .card-content {
+            font-size: 1rem;
+            margin-bottom: 12px;
             white-space: pre-wrap;
+            word-break: break-word;
         }
         
-        .card-topic a {
-            color: var(--text-color);
+        .card-content a {
+            color: #333;
             text-decoration: none;
         }
         
-        .card-topic a:hover {
-            color: var(--primary-color);
-        }
-        
         .card-meta {
-            font-size: 0.85rem;
-            color: #888;
-            margin-bottom: 15px;
+            font-size: 0.75rem;
+            color: #999;
+            margin-bottom: 12px;
         }
         
         .card-actions {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
         
-        .card-actions button {
-            flex: 1;
-            padding: 10px;
+        /* ボタン */
+        button, .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
             font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.2s;
         }
         
-        /* --- 全項目リスト --- */
-        .item-list {
-            background-color: var(--card-bg);
-            border-radius: 16px;
-            box-shadow: var(--shadow);
+        button:hover, .btn:hover {
+            opacity: 0.8;
+        }
+        
+        .btn-primary {
+            background: #333;
+            color: #fff;
+        }
+        
+        .btn-secondary {
+            background: #eee;
+            color: #333;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+        
+        /* 入力フォーム */
+        .input-group {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        
+        textarea, input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: none;
+            margin-bottom: 10px;
+        }
+        
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: #333;
+        }
+        
+        .input-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .input-row input {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        
+        .submit-row {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .submit-row button {
+            flex: 1;
+        }
+        
+        /* リスト */
+        .list {
+            background: #fff;
+            border-radius: 12px;
             overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         }
         
-        .item-row {
+        .list-item {
             display: flex;
             align-items: center;
-            padding: 15px 20px;
+            padding: 14px 16px;
             border-bottom: 1px solid #f0f0f0;
-            gap: 15px;
+            gap: 12px;
         }
         
-        .item-row:last-child {
+        .list-item:last-child {
             border-bottom: none;
         }
         
-        .item-row:hover {
-            background-color: #fafafa;
-        }
-        
-        .item-info {
+        .list-item-content {
             flex: 1;
             min-width: 0;
         }
         
-        .item-topic {
-            font-weight: bold;
-            color: var(--text-color);
-            margin-bottom: 4px;
+        .list-item-title {
+            font-size: 0.95rem;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
         
-        .item-topic a {
-            color: inherit;
+        .list-item-title a {
+            color: #333;
             text-decoration: none;
         }
         
-        .item-topic a:hover {
-            color: var(--primary-color);
-        }
-        
-        .item-meta {
-            font-size: 0.8rem;
-            color: #888;
-        }
-        
-        .item-date {
-            font-size: 0.85rem;
-            color: var(--text-color);
-            white-space: nowrap;
-        }
-        
-        .item-actions {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .item-actions a, .item-actions button {
-            padding: 6px 12px;
-            font-size: 0.8rem;
-            border-radius: 8px;
-        }
-        
-        .item-actions a {
-            background-color: var(--accent-color);
-            color: white;
-            text-decoration: none;
-        }
-        
-        /* --- フラッシュメッセージ --- */
-        .flash-message {
-            padding: 15px 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            color: white;
-            font-weight: bold;
-        }
-        
-        .flash-message.success { background-color: var(--success-color); }
-        .flash-message.danger { background-color: var(--danger-color); }
-        .flash-message.info { background-color: var(--accent-color); }
-        
-        /* --- 空の状態 --- */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
+        .list-item-meta {
+            font-size: 0.75rem;
             color: #999;
         }
         
-        .empty-state .emoji {
-            font-size: 4rem;
-            margin-bottom: 20px;
+        .list-item-date {
+            font-size: 0.8rem;
+            color: #666;
         }
         
-        .empty-state h3 {
-            margin: 0 0 10px 0;
-            color: var(--text-color);
-        }
-        
-        /* --- カテゴリタイトル --- */
-        .category-title {
-            color: var(--primary-color);
-            margin: 25px 0 15px 0;
-            font-size: 1rem;
+        .list-item-actions {
             display: flex;
-            align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
         
-        .category-title::before {
-            content: '';
-            width: 4px;
-            height: 1em;
-            background-color: var(--primary-color);
-            border-radius: 2px;
-        }
-        
-        /* --- フッターリンク --- */
-        .footer-links {
-            text-align: center;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }
-        
-        .footer-links a {
-            color: #888;
+        .list-item-actions a {
+            color: #666;
             text-decoration: none;
+            font-size: 0.8rem;
+        }
+        
+        /* 通知バー */
+        .notify-bar {
+            background: #25D366;
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             font-size: 0.9rem;
-            margin: 0 15px;
         }
         
-        .footer-links a:hover {
-            color: var(--primary-color);
+        .notify-bar button {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            padding: 6px 14px;
         }
         
-        /* --- レスポンシブ --- */
-        @media (max-width: 600px) {
-            body { padding: 15px; }
-            .card-grid { grid-template-columns: 1fr; }
-            .form-row { flex-direction: column; }
-            .line-panel { flex-direction: column; text-align: center; }
-            .item-row { flex-wrap: wrap; }
-            .item-actions { width: 100%; margin-top: 10px; }
+        /* フラッシュ */
+        .flash {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+        
+        .flash.success { background: #d4edda; color: #155724; }
+        .flash.danger { background: #f8d7da; color: #721c24; }
+        .flash.info { background: #e2e3e5; color: #383d41; }
+        
+        /* 空状態 */
+        .empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+        
+        .empty-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        /* カテゴリ */
+        .category-label {
+            font-size: 0.75rem;
+            color: #666;
+            background: #f0f0f0;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+        
+        /* フッター */
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 0.8rem;
+            color: #999;
+        }
+        
+        footer a {
+            color: #666;
+            text-decoration: none;
+            margin: 0 10px;
         }
     </style>
 </head>
@@ -454,140 +280,108 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-                <div class="flash-message {{ category }}">{{ message }}</div>
+                <div class="flash {{ category }}">{{ message }}</div>
             {% endfor %}
         {% endif %}
     {% endwith %}
 
-    <header>
-        <h1>🧠 復習フレンズ</h1>
-        <p>忘却曲線でしつこく復習！絶対覚える暗記アプリ</p>
-    </header>
+    <h1>📚 復習</h1>
 
-    <main>
-        <!-- LINE通知パネル -->
-        <div class="line-panel">
-            <div class="line-info">
-                <span class="line-icon">📱</span>
-                <div>
-                    <strong>LINE通知で絶対忘れない！</strong>
-                    <p>復習の時間になったらLINEでお知らせ</p>
-                </div>
-            </div>
-            <button class="line-btn" onclick="sendLineReminder()">📤 今すぐ通知テスト</button>
-        </div>
+    <!-- LINE通知 -->
+    <div class="notify-bar">
+        <span>LINE通知でリマインド</span>
+        <button onclick="sendLineReminder()">テスト送信</button>
+    </div>
 
-        <!-- 新規登録パネル -->
-        <div class="control-panel">
-            <h3>📝 新しい暗記項目を登録</h3>
+    <!-- 入力フォーム -->
+    <div class="section">
+        <div class="input-group">
             <form action="{{ url_for('add_item') }}" method="POST">
-                <textarea name="topic" placeholder="覚えたいことを入力...&#10;&#10;例: 英単語 ephemeral = 儚い、一時的な&#10;例: 1853年 ペリー来航" required></textarea>
-                <div class="form-row">
-                    <input type="text" name="url" placeholder="関連URL（任意）">
-                    <input type="text" name="category" placeholder="カテゴリ（任意）">
+                <textarea name="topic" rows="3" placeholder="覚えたいことを入力..." required></textarea>
+                <div class="input-row">
+                    <input type="text" name="url" placeholder="URL（任意）">
+                    <input type="text" name="category" placeholder="カテゴリ">
                 </div>
-                <div style="display: flex; gap: 10px;">
-                    <button type="submit" name="initial_confidence" value="again" class="btn-warning" style="flex: 1;">😰 むずかしい</button>
-                    <button type="submit" name="initial_confidence" value="good" class="btn-success" style="flex: 1;">😊 いいかんじ</button>
+                <div class="submit-row">
+                    <button type="submit" name="initial_confidence" value="again" class="btn-secondary">😅 難しい</button>
+                    <button type="submit" name="initial_confidence" value="good" class="btn-primary">👍 OK</button>
                 </div>
             </form>
         </div>
+    </div>
 
-        <!-- 今日の復習 -->
-        <div class="section-title">
-            <h2>🔥 今日の復習</h2>
-            {% set total_count = items_by_cat.values() | map('length') | sum %}
-            <span class="count">{{ total_count }}件</span>
-        </div>
-
+    <!-- 今日の復習 -->
+    <div class="section">
+        <div class="section-title">今日の復習 ({{ items_by_cat.values() | map('length') | sum }})</div>
+        
         {% if items_by_cat %}
-            <div class="card-grid">
-                {% for category, items in items_by_cat.items() %}
+            {% for category, items in items_by_cat.items() %}
+                {% for item in items %}
+                <div class="card {% if item.review_level == 0 %}urgent{% endif %}">
+                    <span class="category-label">{{ category }}</span>
+                    <div class="card-content">{% if item.url %}<a href="{{ item.url }}" target="_blank">{{ item.topic }}</a>{% else %}{{ item.topic }}{% endif %}</div>
+                    <div class="card-meta">Lv.{{ item.review_level }} • {{ item.date_added.strftime('%m/%d') }}〜</div>
+                    <div class="card-actions">
+                        <form action="{{ url_for('review_item', item_id=item.id) }}" method="POST" style="display:contents;">
+                            <button type="submit" name="confidence" value="again" class="btn-secondary">もう1回</button>
+                            <button type="submit" name="confidence" value="good" class="btn-primary">覚えた</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endfor %}
+        {% else %}
+            <div class="empty">
+                <div class="empty-icon">✨</div>
+                <div>今日の復習完了！</div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- 全項目 -->
+    <div class="section">
+        <div class="section-title">すべて ({{ all_items_by_cat.values() | map('length') | sum }})</div>
+        
+        {% if all_items_by_cat %}
+            <div class="list">
+                {% for category, items in all_items_by_cat.items() %}
                     {% for item in items %}
-                    <div class="memo-card {% if item.review_level == 0 %}urgent{% endif %}">
-                        <div class="card-header">
-                            <span class="card-category">{{ category }}</span>
-                            <span class="card-level">Lv.{{ item.review_level }} / {{ item.date_added.strftime('%m/%d') }}〜</span>
-                        </div>
-                        <div class="card-body">
-                            <p class="card-topic">{% if item.url %}<a href="{{ item.url }}" target="_blank" rel="noopener">{{ item.topic }}</a>{% else %}{{ item.topic }}{% endif %}</p>
-                            <p class="card-meta">次の間隔: {{ [1,3,7,16,35,60,120][item.review_level] if item.review_level < 7 else 120 }}日後</p>
-                            <div class="card-actions">
-                                <form action="{{ url_for('review_item', item_id=item.id) }}" method="POST" style="display: contents;">
-                                    <button type="submit" name="confidence" value="again" class="btn-warning">😰 もう1回</button>
-                                    <button type="submit" name="confidence" value="good" class="btn-success">✅ 覚えた！</button>
-                                </form>
+                    <div class="list-item">
+                        <div class="list-item-content">
+                            <div class="list-item-title">
+                                {% if item.url %}<a href="{{ item.url }}" target="_blank">{{ item.topic[:40] }}{% if item.topic|length > 40 %}...{% endif %}</a>{% else %}{{ item.topic[:40] }}{% if item.topic|length > 40 %}...{% endif %}{% endif %}
                             </div>
+                            <div class="list-item-meta">{{ category }} • Lv.{{ item.review_level }}</div>
+                        </div>
+                        <div class="list-item-date">{{ item.next_review_date.strftime('%m/%d') }}</div>
+                        <div class="list-item-actions">
+                            <a href="{{ url_for('edit_item', item_id=item.id) }}">編集</a>
+                            <form action="{{ url_for('delete_item', item_id=item.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('削除？');">
+                                <button type="submit" style="background:none;color:#999;padding:0;font-size:0.8rem;">削除</button>
+                            </form>
                         </div>
                     </div>
                     {% endfor %}
                 {% endfor %}
             </div>
         {% else %}
-            <div class="empty-state">
-                <div class="emoji">🎉</div>
-                <h3>今日の復習は完了！</h3>
-                <p>よく頑張りました！新しい項目を登録しましょう</p>
+            <div class="empty">
+                <div class="empty-icon">📝</div>
+                <div>まだ項目がありません</div>
             </div>
         {% endif %}
+    </div>
 
-        <!-- 全項目リスト -->
-        <div class="section-title">
-            <h2>📚 すべての項目</h2>
-            {% set all_count = all_items_by_cat.values() | map('length') | sum %}
-            <span class="count">{{ all_count }}件</span>
-        </div>
-
-        {% if all_items_by_cat %}
-            {% for category, items in all_items_by_cat.items() %}
-                <h4 class="category-title">{{ category }}</h4>
-                <div class="item-list">
-                    {% for item in items %}
-                    <div class="item-row">
-                        <div class="item-info">
-                            <div class="item-topic">
-                                {% if item.url %}
-                                    <a href="{{ item.url }}" target="_blank">{{ item.topic[:50] }}{% if item.topic|length > 50 %}...{% endif %}</a>
-                                {% else %}
-                                    {{ item.topic[:50] }}{% if item.topic|length > 50 %}...{% endif %}
-                                {% endif %}
-                            </div>
-                            <div class="item-meta">Lv.{{ item.review_level }} / {{ item.date_added.strftime('%Y/%m/%d') }}登録</div>
-                        </div>
-                        <div class="item-date">{{ item.next_review_date.strftime('%m/%d') }}</div>
-                        <div class="item-actions">
-                            <a href="{{ url_for('edit_item', item_id=item.id) }}">編集</a>
-                            <form action="{{ url_for('delete_item', item_id=item.id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('削除しますか？');">
-                                <button type="submit" class="btn-danger btn-small">削除</button>
-                            </form>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            {% endfor %}
-        {% else %}
-            <div class="empty-state">
-                <div class="emoji">📝</div>
-                <h3>まだ項目がありません</h3>
-                <p>上のフォームから暗記したい項目を登録しましょう！</p>
-            </div>
-        {% endif %}
-
-        <div class="footer-links">
-            <a href="{{ url_for('bookmarklet') }}">🔖 ブックマークレット</a>
-            <a href="/api/pending-reviews">📡 API</a>
-        </div>
-    </main>
+    <footer>
+        <a href="{{ url_for('bookmarklet') }}">ブックマークレット</a>
+        <a href="/api/debug-line">LINE設定確認</a>
+    </footer>
 
     <script>
         async function sendLineReminder() {
-            try {
-                const res = await fetch('/api/send-reminder', { method: 'POST' });
-                const data = await res.json();
-                alert(data.message || (data.success ? '通知を送信しました！' : 'LINE通知の設定が必要です'));
-            } catch (e) {
-                alert('通信エラーが発生しました');
-            }
+            const res = await fetch('/api/send-reminder', { method: 'POST' });
+            const data = await res.json();
+            alert(data.message || (data.success ? '送信しました' : 'エラー: ' + (data.detail || '設定を確認')));
         }
     </script>
 </body>
