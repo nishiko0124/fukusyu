@@ -258,7 +258,7 @@ def api_review_item(item_id):
 def send_line_message(message):
     """LINE Messaging APIでプッシュ通知を送信"""
     if not LINE_CHANNEL_ACCESS_TOKEN or not LINE_USER_ID:
-        return False
+        return False, "環境変数が設定されていません"
     
     url = 'https://api.line.me/v2/bot/message/push'
     headers = {
@@ -275,9 +275,22 @@ def send_line_message(message):
     
     try:
         response = requests.post(url, headers=headers, json=data)
-        return response.status_code == 200
-    except:
-        return False
+        if response.status_code == 200:
+            return True, "送信成功"
+        else:
+            return False, f"エラー: {response.status_code} - {response.text}"
+    except Exception as e:
+        return False, f"例外: {str(e)}"
+
+# デバッグ用: 環境変数の確認
+@app.route('/api/debug-line')
+def debug_line():
+    return jsonify({
+        'token_set': bool(LINE_CHANNEL_ACCESS_TOKEN),
+        'token_preview': LINE_CHANNEL_ACCESS_TOKEN[:20] + '...' if LINE_CHANNEL_ACCESS_TOKEN else None,
+        'user_id_set': bool(LINE_USER_ID),
+        'user_id': LINE_USER_ID
+    })
 
 @app.route('/api/send-reminder', methods=['POST'])
 def api_send_reminder():
@@ -299,12 +312,12 @@ def api_send_reminder():
     
     message += f"\n\n👉 https://fukusyu-production.up.railway.app/"
     
-    success = send_line_message(message)
+    success, detail = send_line_message(message)
     
     return jsonify({
         'success': success,
         'count': len(items),
-        'message': 'LINE通知を送信しました' if success else 'LINE通知の設定を確認してください'
+        'message': 'LINE通知を送信しました' if success else f'LINE通知エラー: {detail}'
     })
 
 @app.route('/api/cron-reminder')
@@ -327,11 +340,12 @@ def cron_reminder():
     
     message += f"\n\n今すぐ確認 👇\nhttps://fukusyu-production.up.railway.app/"
     
-    success = send_line_message(message)
+    success, detail = send_line_message(message)
     
     return jsonify({
         'success': success,
-        'count': len(items)
+        'count': len(items),
+        'detail': detail
     })
 
 # --- データベース初期化 ---
