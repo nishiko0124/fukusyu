@@ -71,7 +71,7 @@ def add_item():
         category = request.form.get('category', '一般').strip()
         initial_confidence = request.form.get('initial_confidence', 'again')
         if not topic:
-            flash("項目名は必須です。", "danger")
+            flash("項目名は必須だよ。。", "danger")
             return redirect(url_for('index'))
         if not category:
             category = '一般'
@@ -86,7 +86,7 @@ def add_item():
         )
         db.session.add(new_item)
         db.session.commit()
-        flash(f"「{topic}」を登録しました。次は{interval_days}日後です！", "success")
+        flash(f"追加しました", "success")
         if 'bookmarklet' in request.args:
             return "<script>window.close();</script>"
         return redirect(url_for('index'))
@@ -103,13 +103,13 @@ def review_item(item_id):
         item.review_level = 0
         interval_days = REVIEW_INTERVALS_DAYS[0]
         item.next_review_date = date.today() + timedelta(days=interval_days)
-        flash(f"「{item.topic}」を明日もう一度復習しましょう。", "info")
+        flash(f"もう1回", "info")
     else:
         if item.review_level < len(REVIEW_INTERVALS_DAYS) - 1:
              item.review_level += 1
         interval_days = REVIEW_INTERVALS_DAYS[item.review_level]
         item.next_review_date = date.today() + timedelta(days=interval_days)
-        flash(f"「{item.topic}」を復習しました。次は{interval_days}日後です。", "success")
+        flash(f"覚えた", "success")
     db.session.commit()
     return redirect(url_for('index'))
 
@@ -188,7 +188,7 @@ def api_edit_item(item_id):
             item.url = data['url']
         db.session.commit()
         return jsonify({'success': True, 'topic': item.topic})
-    return jsonify({'error': '項目名は必須です'}), 400
+    return jsonify({'error': '項目名は必須だよ。'}), 400
 
 # --- ★★★【API】全項目を取得 ★★★ ---
 @app.route('/api/items')
@@ -211,7 +211,7 @@ def api_items():
 def api_add_item():
     data = request.get_json()
     if not data or not data.get('topic'):
-        return jsonify({'error': '項目名は必須です'}), 400
+        return jsonify({'error': '項目名は必須だよ。'}), 400
     
     topic = data.get('topic')
     url = data.get('url', '')
