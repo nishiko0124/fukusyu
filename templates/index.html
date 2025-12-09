@@ -240,9 +240,7 @@
     <div class="section">
         <div class="add-box">
             <form action="{{ url_for('add_item') }}" method="POST">
-                <textarea name="topic" rows="4" placeholder="覚えたいことを入力...
-
-長文もOK" required></textarea>
+                <textarea name="topic" rows="4" placeholder="覚えたいこと..." required></textarea>
                 <div style="display:flex; gap:6px; margin-bottom:8px;">
                     <input type="text" name="category" placeholder="カテゴリ（空なら一般）" style="flex:1; padding:8px; border:1px solid #e0e0e0; border-radius:6px; font-size:0.85rem;">
                 </div>
