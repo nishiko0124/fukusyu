@@ -17,8 +17,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# LINE Notify設定
-LINE_NOTIFY_TOKEN = os.environ.get('LINE_NOTIFY_TOKEN')
+# LINE Messaging API 設定
+LINE_CHANNEL_ACCESS_TOKEN = os.environ.get('LINE_CHANNEL_ACCESS_TOKEN')
+LINE_USER_ID = os.environ.get('LINE_USER_ID')
 
 db = SQLAlchemy(app)
 
@@ -253,18 +254,27 @@ def api_review_item(item_id):
         }
     })
 
-# --- ★★★【LINE通知】★★★ ---
-def send_line_notify(message):
-    """LINE Notifyで通知を送信"""
-    if not LINE_NOTIFY_TOKEN:
+# --- ★★★【LINE Messaging API】★★★ ---
+def send_line_message(message):
+    """LINE Messaging APIでプッシュ通知を送信"""
+    if not LINE_CHANNEL_ACCESS_TOKEN or not LINE_USER_ID:
         return False
     
-    url = 'https://notify-api.line.me/api/notify'
-    headers = {'Authorization': f'Bearer {LINE_NOTIFY_TOKEN}'}
-    data = {'message': message}
+    url = 'https://api.line.me/v2/bot/message/push'
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {LINE_CHANNEL_ACCESS_TOKEN}'
+    }
+    data = {
+        'to': LINE_USER_ID,
+        'messages': [{
+            'type': 'text',
+            'text': message
+        }]
+    }
     
     try:
-        response = requests.post(url, headers=headers, data=data)
+        response = requests.post(url, headers=headers, json=data)
         return response.status_code == 200
     except:
         return False
@@ -289,12 +299,12 @@ def api_send_reminder():
     
     message += f"\n\n👉 https://fukusyu-production.up.railway.app/"
     
-    success = send_line_notify(message)
+    success = send_line_message(message)
     
     return jsonify({
         'success': success,
         'count': len(items),
-        'message': 'LINE通知を送信しました' if success else 'LINE通知の送信に失敗しました'
+        'message': 'LINE通知を送信しました' if success else 'LINE通知の設定を確認してください'
     })
 
 @app.route('/api/cron-reminder')
@@ -317,7 +327,7 @@ def cron_reminder():
     
     message += f"\n\n今すぐ確認 👇\nhttps://fukusyu-production.up.railway.app/"
     
-    success = send_line_notify(message)
+    success = send_line_message(message)
     
     return jsonify({
         'success': success,
