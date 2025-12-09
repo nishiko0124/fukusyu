@@ -441,6 +441,14 @@ def cron_reminder():
 # --- データベース初期化 ---
 with app.app_context():
     db.create_all()
+    # is_completed カラムがなければ追加（マイグレーション）
+    from sqlalchemy import inspect, text
+    inspector = inspect(db.engine)
+    columns = [col['name'] for col in inspector.get_columns('review_item')]
+    if 'is_completed' not in columns:
+        with db.engine.connect() as conn:
+            conn.execute(text('ALTER TABLE review_item ADD COLUMN is_completed BOOLEAN NOT NULL DEFAULT FALSE'))
+            conn.commit()
 
 if __name__ == '__main__':
     app.run(debug=True)
