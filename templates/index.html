@@ -125,7 +125,7 @@
         
         .item-top {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 8px;
             margin-bottom: 6px;
         }
@@ -133,9 +133,18 @@
         .item-text {
             flex: 1;
             font-size: 0.9rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            white-space: pre-wrap;
+            word-break: break-word;
+            line-height: 1.4;
+        }
+        
+        .cat-header {
+            font-size: 0.75rem;
+            color: #666;
+            background: #f0f0f0;
+            padding: 4px 10px;
+            margin: 12px 0 6px 0;
+            border-radius: 4px;
         }
         
         .item-bottom {
@@ -234,7 +243,9 @@
                 <textarea name="topic" rows="4" placeholder="覚えたいことを入力...
 
 長文もOK" required></textarea>
-                <input type="hidden" name="category" value="一般">
+                <div style="display:flex; gap:6px; margin-bottom:8px;">
+                    <input type="text" name="category" placeholder="カテゴリ（空なら一般）" style="flex:1; padding:8px; border:1px solid #e0e0e0; border-radius:6px; font-size:0.85rem;">
+                </div>
                 <div class="add-btns">
                     <button type="submit" name="initial_confidence" value="again" class="btn-light">難しい</button>
                     <button type="submit" name="initial_confidence" value="good" class="btn-dark">OK</button>
@@ -248,6 +259,7 @@
         <div class="label">今日やる ({{ items_by_cat.values() | map('length') | sum }})</div>
         {% if items_by_cat %}
             {% for category, items in items_by_cat.items() %}
+                <div class="cat-header">{{ category }}</div>
                 {% for item in items %}
                 <div class="card {% if item.review_level == 0 %}urgent{% endif %}">
                     <div class="card-text">{{ item.topic }}</div>
@@ -273,6 +285,7 @@
         <div class="label">すべて ({{ all_items_by_cat.values() | map('length') | sum }})</div>
         {% if all_items_by_cat %}
             {% for category, items in all_items_by_cat.items() %}
+                <div class="cat-header">{{ category }} ({{ items | length }})</div>
                 {% for item in items %}
                 <div class="item">
                     <div class="item-top">
@@ -312,13 +325,13 @@
         function editItem(id) {
             const span = document.getElementById('text-' + id);
             const current = span.textContent;
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.value = current;
-            input.style.cssText = 'width:100%; padding:4px; font-size:0.9rem; border:1px solid #333; border-radius:4px;';
+            const textarea = document.createElement('textarea');
+            textarea.value = current;
+            textarea.style.cssText = 'width:100%; padding:6px; font-size:0.9rem; border:1px solid #333; border-radius:4px; resize:vertical; min-height:60px;';
+            textarea.rows = Math.max(3, current.split('\n').length + 1);
             
-            input.onblur = async function() {
-                const newVal = input.value.trim();
+            textarea.onblur = async function() {
+                const newVal = textarea.value.trim();
                 if (newVal && newVal !== current) {
                     const r = await fetch('/api/edit/' + id, {
                         method: 'POST',
@@ -330,18 +343,17 @@
                     }
                 }
                 span.style.display = '';
-                input.remove();
+                textarea.remove();
             };
             
-            input.onkeydown = function(e) {
-                if (e.key === 'Enter') input.blur();
-                if (e.key === 'Escape') { input.value = current; input.blur(); }
+            textarea.onkeydown = function(e) {
+                if (e.key === 'Escape') { textarea.value = current; textarea.blur(); }
+                if (e.key === 'Enter' && e.metaKey) textarea.blur();
             };
             
             span.style.display = 'none';
-            span.parentNode.insertBefore(input, span);
-            input.focus();
-            input.select();
+            span.parentNode.insertBefore(textarea, span);
+            textarea.focus();
         }
     </script>
 </body>
