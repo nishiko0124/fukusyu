@@ -231,7 +231,9 @@
     <div class="section">
         <div class="add-box">
             <form action="{{ url_for('add_item') }}" method="POST">
-                <textarea name="topic" rows="2" placeholder="覚えたいことを入力..." required></textarea>
+                <textarea name="topic" rows="4" placeholder="覚えたいことを入力...
+
+長文もOK" required></textarea>
                 <input type="hidden" name="category" value="一般">
                 <div class="add-btns">
                     <button type="submit" name="initial_confidence" value="again" class="btn-light">難しい</button>

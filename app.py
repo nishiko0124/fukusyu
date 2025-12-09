@@ -310,28 +310,32 @@ def debug_line():
 
 @app.route('/api/send-reminder', methods=['POST'])
 def api_send_reminder():
-    """今日の復習項目をLINEで通知"""
+    """今日の復習項目をLINEで通知（カテゴリ別）"""
     today = date.today()
-    items = ReviewItem.query.filter(ReviewItem.next_review_date <= today).all()
+    items = ReviewItem.query.filter(ReviewItem.next_review_date <= today).order_by(ReviewItem.category).all()
     
     if not items:
-        # 復習項目がなくてもテスト通知を送る
-        success, detail = send_line_message("[復習] テスト通知です\n\n通知が届いていれば設定完了")
+        success, detail = send_line_message("[復習] 今日の復習はありません")
         return jsonify({
             'success': success,
-            'message': 'テスト通知を送信しました' if success else f'エラー: {detail}',
+            'message': '通知を送信しました' if success else f'エラー: {detail}',
             'detail': detail
         })
     
-    message = f"[復習] {len(items)}件\n\n"
+    # カテゴリ別に整理
+    by_cat = defaultdict(list)
+    for item in items:
+        by_cat[item.category].append(item)
     
-    for item in items[:10]:
-        message += f"- {item.topic}\n"
+    message = f"[復習] {len(items)}件\n"
     
-    if len(items) > 10:
-        message += f"\n...他{len(items) - 10}件"
+    for cat, cat_items in by_cat.items():
+        message += f"\n[{cat}]\n"
+        for item in cat_items:
+            # Lvも表示
+            message += f"- {item.topic} (Lv.{item.review_level})\n"
     
-    message += f"\n\nhttps://fukusyu-production.up.railway.app/"
+    message += f"\nhttps://fukusyu-production.up.railway.app/"
     
     success, detail = send_line_message(message)
     
@@ -345,20 +349,24 @@ def api_send_reminder():
 def cron_reminder():
     """外部cronサービスから呼び出し用（GETでもOK）"""
     today = date.today()
-    items = ReviewItem.query.filter(ReviewItem.next_review_date <= today).all()
+    items = ReviewItem.query.filter(ReviewItem.next_review_date <= today).order_by(ReviewItem.category).all()
     
     if not items:
         return jsonify({'success': True, 'message': '今日の復習はありません', 'count': 0})
     
-    message = f"[復習] {len(items)}件が待ち\n\n"
+    # カテゴリ別に整理
+    by_cat = defaultdict(list)
+    for item in items:
+        by_cat[item.category].append(item)
     
-    for item in items[:5]:
-        message += f"- {item.topic}\n"
+    message = f"[復習] {len(items)}件\n"
     
-    if len(items) > 5:
-        message += f"\n...他{len(items) - 5}件"
+    for cat, cat_items in by_cat.items():
+        message += f"\n[{cat}]\n"
+        for item in cat_items:
+            message += f"- {item.topic}\n"
     
-    message += f"\n\nhttps://fukusyu-production.up.railway.app/"
+    message += f"\nhttps://fukusyu-production.up.railway.app/"
     
     success, detail = send_line_message(message)
     
