@@ -1,4 +1,5 @@
 import os
+import requests
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import date, timedelta, datetime
@@ -15,6 +16,10 @@ if database_url.startswith('postgres://'):
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# LINE Notify設定
+LINE_NOTIFY_TOKEN = os.environ.get('LINE_NOTIFY_TOKEN')
+
 db = SQLAlchemy(app)
 
 # --- ★★★ 復習間隔をここで自由に設定 ★★★ ---
@@ -246,6 +251,77 @@ def api_review_item(item_id):
             'review_level': item.review_level,
             'interval_days': interval_days
         }
+    })
+
+# --- ★★★【LINE通知】★★★ ---
+def send_line_notify(message):
+    """LINE Notifyで通知を送信"""
+    if not LINE_NOTIFY_TOKEN:
+        return False
+    
+    url = 'https://notify-api.line.me/api/notify'
+    headers = {'Authorization': f'Bearer {LINE_NOTIFY_TOKEN}'}
+    data = {'message': message}
+    
+    try:
+        response = requests.post(url, headers=headers, data=data)
+        return response.status_code == 200
+    except:
+        return False
+
+@app.route('/api/send-reminder', methods=['POST'])
+def api_send_reminder():
+    """今日の復習項目をLINEで通知"""
+    today = date.today()
+    items = ReviewItem.query.filter(ReviewItem.next_review_date <= today).all()
+    
+    if not items:
+        return jsonify({'success': True, 'message': '今日の復習はありません'})
+    
+    message = f"\n📚 復習の時間です！\n\n"
+    message += f"今日の復習: {len(items)}件\n\n"
+    
+    for item in items[:10]:  # 最大10件
+        message += f"・{item.topic}\n"
+    
+    if len(items) > 10:
+        message += f"\n...他{len(items) - 10}件"
+    
+    message += f"\n\n👉 https://fukusyu-production.up.railway.app/"
+    
+    success = send_line_notify(message)
+    
+    return jsonify({
+        'success': success,
+        'count': len(items),
+        'message': 'LINE通知を送信しました' if success else 'LINE通知の送信に失敗しました'
+    })
+
+@app.route('/api/cron-reminder')
+def cron_reminder():
+    """外部cronサービスから呼び出し用（GETでもOK）"""
+    today = date.today()
+    items = ReviewItem.query.filter(ReviewItem.next_review_date <= today).all()
+    
+    if not items:
+        return jsonify({'success': True, 'message': '今日の復習はありません', 'count': 0})
+    
+    message = f"\n🔔 復習リマインダー\n\n"
+    message += f"📝 {len(items)}件の項目が復習待ちです！\n\n"
+    
+    for item in items[:5]:
+        message += f"・{item.topic}\n"
+    
+    if len(items) > 5:
+        message += f"\n...他{len(items) - 5}件"
+    
+    message += f"\n\n今すぐ確認 👇\nhttps://fukusyu-production.up.railway.app/"
+    
+    success = send_line_notify(message)
+    
+    return jsonify({
+        'success': success,
+        'count': len(items)
     })
 
 # --- データベース初期化 ---

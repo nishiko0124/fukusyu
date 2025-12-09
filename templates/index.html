@@ -3,126 +3,450 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>復習タイマー - 絶対覚える暗記アプリ</title>
+    <title>復習フレンズ</title>
     <link rel="manifest" href="/static/manifest.json">
-    <meta name="theme-color" content="#d32f2f">
+    <meta name="theme-color" content="#c9514c">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="/static/icon-192.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        /* --- カラーパレット（呟きアプリ風） --- */
         :root {
-            --bg-color: #f7f3e9; --card-color: #ffffff; --text-color: #5d4037;
-            --text-color-dark: #4e342e; --subtle-text-color: #a1887f; --border-color: #d7ccc8;
-            --accent-color: #d32f2f; --accent-color-dark: #b71c1c; --danger-color: #d32f2f;
-            --success-color: #388e3c; --warning-color: #ffa000; --info-color: #3498db;
-            --font-family: 'M PLUS Rounded 1c', sans-serif;
+            --bg-color: #fdfaf9;
+            --text-color: #5a4f4d;
+            --primary-color: #c9514c;
+            --primary-light: #eab6b3;
+            --accent-color: #4c8b8b;
+            --danger-color: #e53935;
+            --success-color: #388e3c;
+            --warning-color: #ffa000;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 12px rgba(90, 79, 77, 0.1);
         }
-        body { font-family: var(--font-family); background-color: var(--bg-color); color: var(--text-color); margin: 0 auto; padding: 20px; max-width: 800px; }
-        .container { background-color: var(--card-color); padding: 20px 30px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); }
-        h1, h2 { font-weight: 700; }
-        h3 { font-size: 1.1em; border-left: 5px solid var(--accent-color); padding-left: 10px; margin-top: 30px; }
-        hr { border: none; border-top: 1px solid var(--border-color); margin: 40px 0; }
-        .item { border: 1px solid var(--border-color); padding: 20px; margin-bottom: 20px; border-radius: 10px; }
-        .item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1em; }
-        .item-header h4 { margin-top: 0; margin-bottom: 0; font-weight: 700; font-size: 1.25rem; }
-        .item-header h4 a { color: var(--text-color); text-decoration: none; }
-        .item-header h4 a:hover { text-decoration: underline; }
-        .review-actions form, .add-form-actions { display: flex; gap: 10px; margin-top: 15px; margin-bottom: 0; }
-        button { padding: 10px 15px; border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: 700; font-family: var(--font-family); }
-        button:active { transform: translateY(2px); opacity: 0.9; }
-        .btn-again { background-color: var(--warning-color); color: var(--text-color); }
-        .btn-good { background-color: var(--info-color); }
-        .btn-perfect { background-color: var(--success-color); }
-        /* ▼▼▼【修正点1】編集・削除ボタンのスタイルを統一 ▼▼▼ */
-        .btn-update {
-            background-color: var(--subtle-text-color);
-            padding: 5px 10px;
-            font-size: 0.8em;
-            text-decoration: none; /* aタグの下線を消す */
-            display: inline-block;
-            color: white !important; /* 文字色を白に強制 */
-            border-radius: 8px; /* ボタンの角を丸める */
-        }
-        .flash-message { padding: 15px; margin-bottom: 20px; border-radius: 8px; color: white; font-weight: bold; }
-        .flash-message.success { background-color: var(--success-color); }
-        .flash-message.danger { background-color: var(--danger-color); }
-        .flash-message.info { background-color: var(--subtle-text-color); }
-        .setup-link { text-align: right; margin: -10px 0 20px 0; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
-        th { font-weight: 700; }
-        .add-form input { width: 95%; padding: 8px; margin-bottom: 10px; border: 1px solid var(--border-color); border-radius: 4px; }
-        .date-form { display: flex; align-items: center; gap: 8px; }
-        .date-form input[type="date"] { padding: 4px; }
         
-        /* ▼▼▼ 通知設定パネル ▼▼▼ */
-        .notification-panel {
-            background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+        * { box-sizing: border-box; }
+        
+        body {
+            font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        header h1 {
+            color: var(--primary-color);
+            font-weight: normal;
+            font-size: 1.8rem;
+            margin: 0;
+        }
+        
+        header p {
+            color: #999;
+            font-size: 0.9rem;
+            margin: 5px 0 0 0;
+        }
+        
+        main {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        /* --- コントロールパネル --- */
+        .control-panel {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+        
+        .control-panel h3 {
+            margin: 0 0 15px 0;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+        
+        /* --- LINE通知パネル --- */
+        .line-panel {
+            background: linear-gradient(135deg, #00B900 0%, #00A000 100%);
             color: white;
             padding: 20px;
-            border-radius: 12px;
+            border-radius: 16px;
             margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
         }
-        .notification-panel h3 {
-            border-left: none;
-            margin-top: 0;
-            color: white;
-        }
-        .notification-panel p {
-            margin: 10px 0;
-            font-size: 0.9em;
-            opacity: 0.9;
-        }
-        .notification-btn {
-            background-color: white;
-            color: var(--accent-color);
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 700;
-            cursor: pointer;
-            font-size: 1em;
-            margin-right: 10px;
-        }
-        .notification-btn:hover {
-            background-color: #f5f5f5;
-        }
-        .notification-btn:disabled {
-            background-color: #ccc;
-            color: #666;
-            cursor: default;
-        }
-        .settings-toggle {
+        
+        .line-panel .line-info {
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-top: 15px;
-        }
-        .settings-toggle input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-        }
-        .settings-toggle label {
-            font-weight: 500;
         }
         
-        /* ▼▼▼ PWAインストールバナー ▼▼▼ */
-        .install-banner {
-            background-color: var(--info-color);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            display: none;
+        .line-panel .line-icon {
+            font-size: 2rem;
         }
-        .install-banner.show { display: block; }
-        .install-banner button {
+        
+        .line-panel p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        
+        .line-btn {
             background-color: white;
-            color: var(--info-color);
-            margin-left: 15px;
+            color: #00B900;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .line-btn:hover {
+            background-color: #f5f5f5;
+        }
+        
+        /* --- フォーム --- */
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            border: 2px solid #edf2f7;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-light);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        
+        .form-row input {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        
+        button {
+            padding: 12px 24px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .btn-success { background-color: var(--success-color); }
+        .btn-warning { background-color: var(--warning-color); color: var(--text-color); }
+        .btn-danger { background-color: var(--danger-color); }
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+        }
+        
+        /* --- セクションタイトル --- */
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 30px 0 20px 0;
+        }
+        
+        .section-title h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: var(--text-color);
+            font-weight: normal;
+        }
+        
+        .section-title .count {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        
+        /* --- カードグリッド --- */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        /* --- 暗記カード --- */
+        .memo-card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: all 0.2s ease;
+            border-left: 5px solid var(--primary-light);
+        }
+        
+        .memo-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(90, 79, 77, 0.15);
+        }
+        
+        .memo-card.urgent {
+            border-left-color: var(--danger-color);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: var(--shadow); }
+            50% { box-shadow: 0 4px 20px rgba(229, 57, 53, 0.3); }
+        }
+        
+        .card-header {
+            padding: 15px 20px;
+            background-color: #fafafa;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-category {
+            font-size: 0.8rem;
+            color: var(--primary-color);
+            background-color: var(--primary-light);
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+        
+        .card-level {
+            font-size: 0.75rem;
+            color: #888;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        .card-topic {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--text-color);
+            margin: 0 0 10px 0;
+            line-height: 1.5;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+        
+        .card-topic a {
+            color: var(--text-color);
+            text-decoration: none;
+        }
+        
+        .card-topic a:hover {
+            color: var(--primary-color);
+        }
+        
+        .card-meta {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 15px;
+        }
+        
+        .card-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .card-actions button {
+            flex: 1;
+            padding: 10px;
+            font-size: 0.9rem;
+        }
+        
+        /* --- 全項目リスト --- */
+        .item-list {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        
+        .item-row {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            gap: 15px;
+        }
+        
+        .item-row:last-child {
+            border-bottom: none;
+        }
+        
+        .item-row:hover {
+            background-color: #fafafa;
+        }
+        
+        .item-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .item-topic {
+            font-weight: bold;
+            color: var(--text-color);
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .item-topic a {
+            color: inherit;
+            text-decoration: none;
+        }
+        
+        .item-topic a:hover {
+            color: var(--primary-color);
+        }
+        
+        .item-meta {
+            font-size: 0.8rem;
+            color: #888;
+        }
+        
+        .item-date {
+            font-size: 0.85rem;
+            color: var(--text-color);
+            white-space: nowrap;
+        }
+        
+        .item-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .item-actions a, .item-actions button {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border-radius: 8px;
+        }
+        
+        .item-actions a {
+            background-color: var(--accent-color);
+            color: white;
+            text-decoration: none;
+        }
+        
+        /* --- フラッシュメッセージ --- */
+        .flash-message {
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .flash-message.success { background-color: var(--success-color); }
+        .flash-message.danger { background-color: var(--danger-color); }
+        .flash-message.info { background-color: var(--accent-color); }
+        
+        /* --- 空の状態 --- */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        
+        .empty-state .emoji {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        
+        .empty-state h3 {
+            margin: 0 0 10px 0;
+            color: var(--text-color);
+        }
+        
+        /* --- カテゴリタイトル --- */
+        .category-title {
+            color: var(--primary-color);
+            margin: 25px 0 15px 0;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .category-title::before {
+            content: '';
+            width: 4px;
+            height: 1em;
+            background-color: var(--primary-color);
+            border-radius: 2px;
+        }
+        
+        /* --- フッターリンク --- */
+        .footer-links {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .footer-links a {
+            color: #888;
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin: 0 15px;
+        }
+        
+        .footer-links a:hover {
+            color: var(--primary-color);
+        }
+        
+        /* --- レスポンシブ --- */
+        @media (max-width: 600px) {
+            body { padding: 15px; }
+            .card-grid { grid-template-columns: 1fr; }
+            .form-row { flex-direction: column; }
+            .line-panel { flex-direction: column; text-align: center; }
+            .item-row { flex-wrap: wrap; }
+            .item-actions { width: 100%; margin-top: 10px; }
         }
     </style>
 </head>
@@ -134,143 +458,136 @@
             {% endfor %}
         {% endif %}
     {% endwith %}
-    <div class="container">
-        <h1>🧠 復習タイマー</h1>
-        <p style="margin-top: -10px; color: var(--subtle-text-color);">忘却曲線に基づくしつこいリマインダーで絶対に覚える！</p>
-        
-        <!-- 通知設定パネル -->
-        <div class="notification-panel">
-            <h3>🔔 通知設定</h3>
-            <p>復習の時間になったら通知でお知らせします。しつこいモードを有効にすると、確認するまで何度もリマインドします！</p>
-            <button id="enable-notifications" class="notification-btn">📲 通知を有効にする</button>
-            <div class="settings-toggle">
-                <input type="checkbox" id="aggressive-mode" checked>
-                <label for="aggressive-mode">🔥 しつこいモード（確認するまで何度も通知）</label>
-            </div>
-        </div>
-        
-        <!-- PWAインストールバナー -->
-        <div id="install-banner" class="install-banner">
-            📱 ホーム画面に追加すると、アプリのように使えて通知も受け取れます！
-            <button id="install-btn">インストール</button>
-        </div>
-        
-        <div class="setup-link"><a href="{{ url_for('bookmarklet') }}">ブックマークレット設定</a></div>
-        <h2>今日復習する項目</h2>
-        {% if items_by_cat %}
-            {% for category, items in items_by_cat.items() %}
-                <h3>{{ category }}</h3>
-                {% for item in items %}
-                <div class="item">
-                    <div class="item-header">
-                        <h4>
-                            {% if item.url %}<a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.topic }}</a>{% else %}{{ item.topic }}{% endif %}
-                        </h4>
-                    </div>
-                    <p>追加日: {{ item.date_added.strftime('%Y年%m月%d日') }} / 復習回数: {{ item.review_level }}</p>
-                    <div class="review-actions">
-                        <form action="{{ url_for('review_item', item_id=item.id) }}" method="POST">
-                            <button type="submit" name="confidence" value="again" class="btn-again">できなかった</button>
-                            <button type="submit" name="confidence" value="good" class="btn-good">できた</button>
-                        </form>
-                    </div>
+
+    <header>
+        <h1>🧠 復習フレンズ</h1>
+        <p>忘却曲線でしつこく復習！絶対覚える暗記アプリ</p>
+    </header>
+
+    <main>
+        <!-- LINE通知パネル -->
+        <div class="line-panel">
+            <div class="line-info">
+                <span class="line-icon">📱</span>
+                <div>
+                    <strong>LINE通知で絶対忘れない！</strong>
+                    <p>復習の時間になったらLINEでお知らせ</p>
                 </div>
-                {% endfor %}
-            {% endfor %}
-        {% else %}
-            <p>今日復習する項目はありません。よく頑張りました！👏</p>
-        {% endif %}
-        <hr>
-        <h2>新しい項目を手動で登録</h2>
-        <form action="{{ url_for('add_item') }}" method="POST" class="add-form">
-            項目名: <input type="text" name="topic" required><br>
-            関連URL (任意): <input type="text" name="url"><br>
-            カテゴリ (任意): <input type="text" name="category" placeholder="例: 本,教材 etc..."><br>
-            <div class="add-form-actions">
-                <button type="submit" name="initial_confidence" value="again" class="btn-again">登録 (むずかしかった)</button>
-                <button type="submit" name="initial_confidence" value="good" class="btn-good">登録 (いいかんじ！)</button>
             </div>
-        </form>
-        <hr>
-        <h2>登録済みの全項目リスト</h2>
+            <button class="line-btn" onclick="sendLineReminder()">📤 今すぐ通知テスト</button>
+        </div>
+
+        <!-- 新規登録パネル -->
+        <div class="control-panel">
+            <h3>📝 新しい暗記項目を登録</h3>
+            <form action="{{ url_for('add_item') }}" method="POST">
+                <textarea name="topic" placeholder="覚えたいことを入力...&#10;&#10;例: 英単語 ephemeral = 儚い、一時的な&#10;例: 1853年 ペリー来航" required></textarea>
+                <div class="form-row">
+                    <input type="text" name="url" placeholder="関連URL（任意）">
+                    <input type="text" name="category" placeholder="カテゴリ（任意）">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" name="initial_confidence" value="again" class="btn-warning" style="flex: 1;">😰 むずかしい</button>
+                    <button type="submit" name="initial_confidence" value="good" class="btn-success" style="flex: 1;">😊 いいかんじ</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 今日の復習 -->
+        <div class="section-title">
+            <h2>🔥 今日の復習</h2>
+            {% set total_count = items_by_cat.values() | map('length') | sum %}
+            <span class="count">{{ total_count }}件</span>
+        </div>
+
+        {% if items_by_cat %}
+            <div class="card-grid">
+                {% for category, items in items_by_cat.items() %}
+                    {% for item in items %}
+                    <div class="memo-card {% if item.review_level == 0 %}urgent{% endif %}">
+                        <div class="card-header">
+                            <span class="card-category">{{ category }}</span>
+                            <span class="card-level">Lv.{{ item.review_level }} / {{ item.date_added.strftime('%m/%d') }}〜</span>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-topic">{% if item.url %}<a href="{{ item.url }}" target="_blank" rel="noopener">{{ item.topic }}</a>{% else %}{{ item.topic }}{% endif %}</p>
+                            <p class="card-meta">次の間隔: {{ [1,3,7,16,35,60,120][item.review_level] if item.review_level < 7 else 120 }}日後</p>
+                            <div class="card-actions">
+                                <form action="{{ url_for('review_item', item_id=item.id) }}" method="POST" style="display: contents;">
+                                    <button type="submit" name="confidence" value="again" class="btn-warning">😰 もう1回</button>
+                                    <button type="submit" name="confidence" value="good" class="btn-success">✅ 覚えた！</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="emoji">🎉</div>
+                <h3>今日の復習は完了！</h3>
+                <p>よく頑張りました！新しい項目を登録しましょう</p>
+            </div>
+        {% endif %}
+
+        <!-- 全項目リスト -->
+        <div class="section-title">
+            <h2>📚 すべての項目</h2>
+            {% set all_count = all_items_by_cat.values() | map('length') | sum %}
+            <span class="count">{{ all_count }}件</span>
+        </div>
+
         {% if all_items_by_cat %}
             {% for category, items in all_items_by_cat.items() %}
-                <h3>{{ category }}</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>項目名</th>
-                            <th>次回復習日</th>
-                            <th>回数</th>
-                            <th>日付変更</th>
-                            <th></th> </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in items %}
-                        <tr>
-                            <td>
-                                {% if item.url %}<a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.topic }}</a>{% else %}{{ item.topic }}{% endif %}
-                            </td>
-                            <td>{{ item.next_review_date.strftime('%Y年%m月%d日') }}</td>
-                            <td>{{ item.review_level }}</td>
-                            <td>
-                                <form action="{{ url_for('update_date', item_id=item.id) }}" method="POST" class="date-form">
-                                    <input type="date" name="new_date" value="{{ item.next_review_date.strftime('%Y-%m-%d') }}" min="{{ today_str }}">
-                                    <button type="submit" class="btn-update">更新</button>
-                                </form>
-                            </td>
-                            <td style="display: flex; gap: 5px;">
-                                <a href="{{ url_for('edit_item', item_id=item.id) }}" class="btn-update" style="background-color: var(--info-color);">編集</a>
-                                <form action="{{ url_for('delete_item', item_id=item.id) }}" method="POST" onsubmit="return confirm('本当にこの項目を削除しますか？');" style="margin: 0;">
-                                    <button type="submit" class="btn-update" style="background-color: var(--danger-color);">削除</button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <h4 class="category-title">{{ category }}</h4>
+                <div class="item-list">
+                    {% for item in items %}
+                    <div class="item-row">
+                        <div class="item-info">
+                            <div class="item-topic">
+                                {% if item.url %}
+                                    <a href="{{ item.url }}" target="_blank">{{ item.topic[:50] }}{% if item.topic|length > 50 %}...{% endif %}</a>
+                                {% else %}
+                                    {{ item.topic[:50] }}{% if item.topic|length > 50 %}...{% endif %}
+                                {% endif %}
+                            </div>
+                            <div class="item-meta">Lv.{{ item.review_level }} / {{ item.date_added.strftime('%Y/%m/%d') }}登録</div>
+                        </div>
+                        <div class="item-date">{{ item.next_review_date.strftime('%m/%d') }}</div>
+                        <div class="item-actions">
+                            <a href="{{ url_for('edit_item', item_id=item.id) }}">編集</a>
+                            <form action="{{ url_for('delete_item', item_id=item.id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('削除しますか？');">
+                                <button type="submit" class="btn-danger btn-small">削除</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
             {% endfor %}
         {% else %}
-            <p>まだ項目は登録されていません。</p>
-            <p>上のフォームから新しい項目を登録してみましょう！👇</p>
+            <div class="empty-state">
+                <div class="emoji">📝</div>
+                <h3>まだ項目がありません</h3>
+                <p>上のフォームから暗記したい項目を登録しましょう！</p>
+            </div>
         {% endif %}
-    </div>
-    
-    <!-- 通知用JavaScript -->
-    <script src="/static/notification.js"></script>
+
+        <div class="footer-links">
+            <a href="{{ url_for('bookmarklet') }}">🔖 ブックマークレット</a>
+            <a href="/api/pending-reviews">📡 API</a>
+        </div>
+    </main>
+
     <script>
-        // PWAインストールプロンプト
-        let deferredPrompt;
-        const installBanner = document.getElementById('install-banner');
-        const installBtn = document.getElementById('install-btn');
-        
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installBanner.classList.add('show');
-        });
-        
-        if (installBtn) {
-            installBtn.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    if (outcome === 'accepted') {
-                        installBanner.classList.remove('show');
-                    }
-                    deferredPrompt = null;
-                }
-            });
-        }
-        
-        // インストール済みの場合はバナーを非表示
-        window.addEventListener('appinstalled', () => {
-            installBanner.classList.remove('show');
-        });
-        
-        // スタンドアロンモードで実行中の場合もバナーを非表示
-        if (window.matchMedia('(display-mode: standalone)').matches) {
-            installBanner.classList.remove('show');
+        async function sendLineReminder() {
+            try {
+                const res = await fetch('/api/send-reminder', { method: 'POST' });
+                const data = await res.json();
+                alert(data.message || (data.success ? '通知を送信しました！' : 'LINE通知の設定が必要です'));
+            } catch (e) {
+                alert('通信エラーが発生しました');
+            }
         }
     </script>
 </body>

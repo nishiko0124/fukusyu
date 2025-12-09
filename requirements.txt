@@ -10,6 +10,7 @@ MarkupSafe==2.1.5
 packaging==25.0
 psycopg2==2.9.10
 psycopg2-binary==2.9.10
+requests==2.31.0
 sqlalchemy==2.0.43
 typing-extensions==4.13.2
 werkzeug==3.0.6
