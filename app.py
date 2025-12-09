@@ -24,7 +24,10 @@ LINE_USER_ID = os.environ.get('LINE_USER_ID')
 db = SQLAlchemy(app)
 
 # --- ★★★ 復習間隔をここで自由に設定 ★★★ ---
-REVIEW_INTERVALS = [1, 3, 7, 16, 35, 60, 120]
+# 時間単位: 'h'をつける（1h=1時間後、3h=3時間後など）
+# 日単位: 数字のみ
+REVIEW_INTERVALS_HOURS = [1, 3, 6]  # 当日: 1時間後、3時間後、6時間後
+REVIEW_INTERVALS_DAYS = [1, 3, 7, 16, 35, 60, 120]  # 翌日以降
 
 
 # --- データベースのモデル定義 ---
@@ -73,10 +76,10 @@ def add_item():
         if not category:
             category = '一般'
         review_level = 0
-        interval_days = REVIEW_INTERVALS[0]
-        if initial_confidence == 'good' and len(REVIEW_INTERVALS) > 1:
+        interval_days = REVIEW_INTERVALS_DAYS[0]
+        if initial_confidence == 'good' and len(REVIEW_INTERVALS_DAYS) > 1:
             review_level = 1
-            interval_days = REVIEW_INTERVALS[1]
+            interval_days = REVIEW_INTERVALS_DAYS[1]
         new_item = ReviewItem(
             topic=topic, url=url, category=category, review_level=review_level,
             next_review_date=date.today() + timedelta(days=interval_days)
@@ -98,13 +101,13 @@ def review_item(item_id):
     confidence = request.form.get('confidence')
     if confidence == 'again':
         item.review_level = 0
-        interval_days = REVIEW_INTERVALS[0]
+        interval_days = REVIEW_INTERVALS_DAYS[0]
         item.next_review_date = date.today() + timedelta(days=interval_days)
         flash(f"「{item.topic}」を明日もう一度復習しましょう。", "info")
     else:
-        if item.review_level < len(REVIEW_INTERVALS) - 1:
+        if item.review_level < len(REVIEW_INTERVALS_DAYS) - 1:
              item.review_level += 1
-        interval_days = REVIEW_INTERVALS[item.review_level]
+        interval_days = REVIEW_INTERVALS_DAYS[item.review_level]
         item.next_review_date = date.today() + timedelta(days=interval_days)
         flash(f"「{item.topic}」を復習しました。次は{interval_days}日後です。", "success")
     db.session.commit()
@@ -203,10 +206,10 @@ def api_add_item():
     initial_confidence = data.get('initial_confidence', 'again')
     
     review_level = 0
-    interval_days = REVIEW_INTERVALS[0]
-    if initial_confidence == 'good' and len(REVIEW_INTERVALS) > 1:
+    interval_days = REVIEW_INTERVALS_DAYS[0]
+    if initial_confidence == 'good' and len(REVIEW_INTERVALS_DAYS) > 1:
         review_level = 1
-        interval_days = REVIEW_INTERVALS[1]
+        interval_days = REVIEW_INTERVALS_DAYS[1]
     
     new_item = ReviewItem(
         topic=topic, url=url, category=category, review_level=review_level,
@@ -234,11 +237,11 @@ def api_review_item(item_id):
     
     if confidence == 'again':
         item.review_level = 0
-        interval_days = REVIEW_INTERVALS[0]
+        interval_days = REVIEW_INTERVALS_DAYS[0]
     else:
-        if item.review_level < len(REVIEW_INTERVALS) - 1:
+        if item.review_level < len(REVIEW_INTERVALS_DAYS) - 1:
             item.review_level += 1
-        interval_days = REVIEW_INTERVALS[item.review_level]
+        interval_days = REVIEW_INTERVALS_DAYS[item.review_level]
     
     item.next_review_date = date.today() + timedelta(days=interval_days)
     db.session.commit()
@@ -300,23 +303,22 @@ def api_send_reminder():
     
     if not items:
         # 復習項目がなくてもテスト通知を送る
-        success, detail = send_line_message("🔔 復習フレンズからのテスト通知です！\n\n通知が届いていれば設定は完了です ✅")
+        success, detail = send_line_message("[復習] テスト通知です\n\n通知が届いていれば設定完了")
         return jsonify({
             'success': success,
             'message': 'テスト通知を送信しました' if success else f'エラー: {detail}',
             'detail': detail
         })
     
-    message = f"\n📚 復習の時間です！\n\n"
-    message += f"今日の復習: {len(items)}件\n\n"
+    message = f"[復習] {len(items)}件\n\n"
     
-    for item in items[:10]:  # 最大10件
-        message += f"・{item.topic}\n"
+    for item in items[:10]:
+        message += f"- {item.topic}\n"
     
     if len(items) > 10:
         message += f"\n...他{len(items) - 10}件"
     
-    message += f"\n\n👉 https://fukusyu-production.up.railway.app/"
+    message += f"\n\nhttps://fukusyu-production.up.railway.app/"
     
     success, detail = send_line_message(message)
     
@@ -335,16 +337,15 @@ def cron_reminder():
     if not items:
         return jsonify({'success': True, 'message': '今日の復習はありません', 'count': 0})
     
-    message = f"\n🔔 復習リマインダー\n\n"
-    message += f"📝 {len(items)}件の項目が復習待ちです！\n\n"
+    message = f"[復習] {len(items)}件が待ち\n\n"
     
     for item in items[:5]:
-        message += f"・{item.topic}\n"
+        message += f"- {item.topic}\n"
     
     if len(items) > 5:
         message += f"\n...他{len(items) - 5}件"
     
-    message += f"\n\n今すぐ確認 👇\nhttps://fukusyu-production.up.railway.app/"
+    message += f"\n\nhttps://fukusyu-production.up.railway.app/"
     
     success, detail = send_line_message(message)
     
