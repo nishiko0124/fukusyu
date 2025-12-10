@@ -442,13 +442,26 @@ def cron_reminder():
 with app.app_context():
     db.create_all()
     # is_completed カラムがなければ追加（マイグレーション）
+    # topicカラムが短い場合はTEXT型に拡張（PostgreSQLのみ）
     from sqlalchemy import inspect, text
     inspector = inspect(db.engine)
     columns = [col['name'] for col in inspector.get_columns('review_item')]
-    if 'is_completed' not in columns:
-        with db.engine.connect() as conn:
+    with db.engine.connect() as conn:
+        if 'is_completed' not in columns:
             conn.execute(text('ALTER TABLE review_item ADD COLUMN is_completed BOOLEAN NOT NULL DEFAULT FALSE'))
             conn.commit()
+        # topicカラムの型を確認し、必要ならTEXT型に拡張
+        topic_type = None
+        for col in inspector.get_columns('review_item'):
+            if col['name'] == 'topic':
+                topic_type = col['type']
+        # PostgreSQLのVARCHAR(200)をTEXTに拡張
+        if topic_type and 'VARCHAR' in str(topic_type) and '200' in str(topic_type):
+            try:
+                conn.execute(text('ALTER TABLE review_item ALTER COLUMN topic TYPE TEXT'))
+                conn.commit()
+            except Exception as e:
+                print(f"[マイグレーション警告] topicカラムの型変更失敗: {e}")
 
 if __name__ == '__main__':
     app.run(debug=True)
