@@ -395,9 +395,9 @@ def api_send_reminder():
         message += f"\n[{cat}]\n"
         for item in cat_items:
             # Lvも表示
-            message += f"- {item.topic} (Lv.{item.review_level})\n"
+            message += f"- {item.topic} (Lv.{item.review_level})\n\n"
     
-    message += f"\nhttps://fukusyu-production.up.railway.app/"
+    message += f"https://fukusyu-production.up.railway.app/"
     
     success, detail = send_line_message(message)
     
@@ -426,9 +426,9 @@ def cron_reminder():
     for cat, cat_items in by_cat.items():
         message += f"\n[{cat}]\n"
         for item in cat_items:
-            message += f"- {item.topic}\n"
+            message += f"- {item.topic}\n\n"
     
-    message += f"\nhttps://fukusyu-production.up.railway.app/"
+    message += f"https://fukusyu-production.up.railway.app/"
     
     success, detail = send_line_message(message)
     
