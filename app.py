@@ -2,15 +2,8 @@ import os
 import requests
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from datetime import date, timedelta, datetime, timezone
+from datetime import date, timedelta, datetime
 from collections import defaultdict
-
-# 日本時間のタイムゾーン
-JST = timezone(timedelta(hours=9))
-
-def today_jst():
-    """日本時間の今日の日付を取得"""
-    return datetime.now(JST).date()
 
 # --- 基本設定 ---
 app = Flask(__name__)
@@ -53,7 +46,7 @@ class ReviewItem(db.Model):
 # --- メインページ ---
 @app.route('/')
 def index():
-    today = today_jst()
+    today = date.today()
     items_to_review_by_cat = defaultdict(list)
     all_items_by_cat = defaultdict(list)
     items_to_review = ReviewItem.query.filter(ReviewItem.next_review_date <= today).order_by(ReviewItem.category, ReviewItem.next_review_date).all()
@@ -89,7 +82,7 @@ def add_item():
             interval_days = REVIEW_INTERVALS_DAYS[1]
         new_item = ReviewItem(
             topic=topic, url=url, category=category, review_level=review_level,
-            next_review_date=today_jst() + timedelta(days=interval_days)
+            next_review_date=date.today() + timedelta(days=interval_days)
         )
         db.session.add(new_item)
         db.session.commit()
@@ -111,24 +104,24 @@ def review_item(item_id):
         item.review_level = 0
         item.is_completed = False
         interval_days = REVIEW_INTERVALS_DAYS[0]
-        item.next_review_date = today_jst() + timedelta(days=interval_days)
+        item.next_review_date = date.today() + timedelta(days=interval_days)
         flash(f"もう1回", "info")
     else:
         # 覚えた
         if item.is_completed:
             # 既に完了済み: 30日後にループ
-            item.next_review_date = today_jst() + timedelta(days=COMPLETED_INTERVAL)
+            item.next_review_date = date.today() + timedelta(days=COMPLETED_INTERVAL)
             flash(f"完了", "success")
         elif item.review_level >= len(REVIEW_INTERVALS_DAYS) - 1:
             # 最終レベルクリア: 完了に
             item.is_completed = True
-            item.next_review_date = today_jst() + timedelta(days=COMPLETED_INTERVAL)
+            item.next_review_date = date.today() + timedelta(days=COMPLETED_INTERVAL)
             flash(f"完了", "success")
         else:
             # 次のレベルへ
             item.review_level += 1
             interval_days = REVIEW_INTERVALS_DAYS[item.review_level]
-            item.next_review_date = today_jst() + timedelta(days=interval_days)
+            item.next_review_date = date.today() + timedelta(days=interval_days)
             flash(f"覚えた", "success")
     db.session.commit()
     return redirect(url_for('index'))
@@ -184,7 +177,7 @@ def bookmarklet():
 # --- ★★★【API】復習待ちの項目数を取得 ★★★ ---
 @app.route('/api/pending-reviews')
 def api_pending_reviews():
-    today = today_jst()
+    today = date.today()
     items = ReviewItem.query.filter(ReviewItem.next_review_date <= today).all()
     return jsonify({
         'count': len(items),
@@ -258,8 +251,8 @@ def api_import():
             topic=item_data['topic'],
             url=item_data.get('url', ''),
             category=item_data.get('category', '一般'),
-            date_added=datetime.strptime(item_data.get('date_added', today_jst().strftime('%Y-%m-%d')), '%Y-%m-%d').date(),
-            next_review_date=datetime.strptime(item_data.get('next_review_date', today_jst().strftime('%Y-%m-%d')), '%Y-%m-%d').date(),
+            date_added=datetime.strptime(item_data.get('date_added', date.today().strftime('%Y-%m-%d')), '%Y-%m-%d').date(),
+            next_review_date=datetime.strptime(item_data.get('next_review_date', date.today().strftime('%Y-%m-%d')), '%Y-%m-%d').date(),
             review_level=item_data.get('review_level', 0)
         )
         db.session.add(new_item)
@@ -288,7 +281,7 @@ def api_add_item():
     
     new_item = ReviewItem(
         topic=topic, url=url, category=category, review_level=review_level,
-        next_review_date=today_jst() + timedelta(days=interval_days)
+        next_review_date=date.today() + timedelta(days=interval_days)
     )
     db.session.add(new_item)
     db.session.commit()
@@ -318,7 +311,7 @@ def api_review_item(item_id):
             item.review_level += 1
         interval_days = REVIEW_INTERVALS_DAYS[item.review_level]
     
-    item.next_review_date = today_jst() + timedelta(days=interval_days)
+    item.next_review_date = date.today() + timedelta(days=interval_days)
     db.session.commit()
     
     return jsonify({
@@ -373,7 +366,7 @@ def debug_line():
 @app.route('/api/send-reminder', methods=['POST'])
 def api_send_reminder():
     """今日の復習項目をLINEで通知（カテゴリ別）"""
-    today = today_jst()
+    today = date.today()
     items = ReviewItem.query.filter(ReviewItem.next_review_date <= today).order_by(ReviewItem.category).all()
     
     if not items:
@@ -395,9 +388,9 @@ def api_send_reminder():
         message += f"\n[{cat}]\n"
         for item in cat_items:
             # Lvも表示
-            message += f"- {item.topic} (Lv.{item.review_level})\n\n"
+            message += f"- {item.topic} (Lv.{item.review_level})\n"
     
-    message += f"https://fukusyu-production.up.railway.app/"
+    message += f"\nhttps://fukusyu-production.up.railway.app/"
     
     success, detail = send_line_message(message)
     
@@ -410,7 +403,7 @@ def api_send_reminder():
 @app.route('/api/cron-reminder')
 def cron_reminder():
     """外部cronサービスから呼び出し用（GETでもOK）"""
-    today = today_jst()
+    today = date.today()
     items = ReviewItem.query.filter(ReviewItem.next_review_date <= today).order_by(ReviewItem.category).all()
     
     if not items:
@@ -426,9 +419,9 @@ def cron_reminder():
     for cat, cat_items in by_cat.items():
         message += f"\n[{cat}]\n"
         for item in cat_items:
-            message += f"- {item.topic}\n\n"
+            message += f"- {item.topic}\n"
     
-    message += f"https://fukusyu-production.up.railway.app/"
+    message += f"\nhttps://fukusyu-production.up.railway.app/"
     
     success, detail = send_line_message(message)
     
@@ -441,27 +434,6 @@ def cron_reminder():
 # --- データベース初期化 ---
 with app.app_context():
     db.create_all()
-    # is_completed カラムがなければ追加（マイグレーション）
-    # topicカラムが短い場合はTEXT型に拡張（PostgreSQLのみ）
-    from sqlalchemy import inspect, text
-    inspector = inspect(db.engine)
-    columns = [col['name'] for col in inspector.get_columns('review_item')]
-    with db.engine.connect() as conn:
-        if 'is_completed' not in columns:
-            conn.execute(text('ALTER TABLE review_item ADD COLUMN is_completed BOOLEAN NOT NULL DEFAULT FALSE'))
-            conn.commit()
-        # topicカラムの型を確認し、必要ならTEXT型に拡張
-        topic_type = None
-        for col in inspector.get_columns('review_item'):
-            if col['name'] == 'topic':
-                topic_type = col['type']
-        # PostgreSQLのVARCHAR(200)をTEXTに拡張
-        if topic_type and 'VARCHAR' in str(topic_type) and '200' in str(topic_type):
-            try:
-                conn.execute(text('ALTER TABLE review_item ALTER COLUMN topic TYPE TEXT'))
-                conn.commit()
-            except Exception as e:
-                print(f"[マイグレーション警告] topicカラムの型変更失敗: {e}")
 
 if __name__ == '__main__':
     app.run(debug=True)

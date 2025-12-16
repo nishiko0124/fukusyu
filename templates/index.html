@@ -235,6 +235,39 @@
     {% endwith %}
 
     <h1>復習</h1>
+    <!-- フラッシュカード表示ボタン＆UI -->
+    <div class="section" id="flashcard-section">
+        <button id="show-flashcards" class="btn-dark" style="width:100%;margin-bottom:8px;">フラッシュカードで表示</button>
+        <div id="flashcard-ui" style="display:none;">
+            <div id="flashcard-card" style="background:#fff;border-radius:10px;padding:24px 12px;box-shadow:0 1px 2px rgba(0,0,0,0.08);margin-bottom:12px;text-align:center;min-height:80px;cursor:pointer;">
+                <span id="flashcard-front"></span>
+                <span id="flashcard-back" style="display:none;"></span>
+            </div>
+            <div style="display:flex;gap:8px;">
+                <form id="flashcard-again-form" method="POST" style="flex:1;display:none;">
+                    <button type="submit" class="btn-light" style="width:100%;">もう1回</button>
+                </form>
+                <form id="flashcard-good-form" method="POST" style="flex:1;display:none;">
+                    <button type="submit" class="btn-dark" style="width:100%;">覚えた</button>
+                </form>
+            </div>
+            <div id="flashcard-progress" style="margin-top:8px;font-size:0.8rem;color:#888;"></div>
+            <button id="flashcard-exit" class="btn-light" style="width:100%;margin-top:12px;">リストに戻る</button>
+        </div>
+    </div>
+
+    <!-- 今日やったこと専用入力欄 -->
+    <div class="section">
+        <div class="add-box">
+            <form action="{{ url_for('add_item') }}" method="POST">
+                <input type="hidden" name="category" value="一般">
+                <textarea name="topic" rows="2" placeholder="今日はやったことを1行で記録" required style="margin-bottom:8px;"></textarea>
+                <div class="add-btns">
+                    <button type="submit" name="initial_confidence" value="good" class="btn-dark" style="width:100%;">記録</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- 追加 -->
     <div class="section">
@@ -255,6 +288,86 @@
     <!-- 今日 -->
     <div class="section">
         <div class="label">今日やる ({{ items_by_cat.values() | map('length') | sum }})</div>
+
+        <script>
+        // --- フラッシュカードJS ---
+        const items = [];
+        {% for category, items in items_by_cat.items() %}
+            {% for item in items %}
+                items.push({
+                    id: {{ item.id }},
+                    topic: `{{ item.topic|e }}`,
+                    url: `{{ item.url|default('')|e }}`,
+                    category: `{{ item.category|e }}`
+                });
+            {% endfor %}
+        {% endfor %}
+        let flashIndex = 0;
+        let showingBack = false;
+        function showFlashcard(idx) {
+            if (items.length === 0) {
+                document.getElementById('flashcard-front').innerText = '今日の復習はありません';
+                document.getElementById('flashcard-back').style.display = 'none';
+                document.getElementById('flashcard-again-form').style.display = 'none';
+                document.getElementById('flashcard-good-form').style.display = 'none';
+                document.getElementById('flashcard-progress').innerText = '';
+                return;
+            }
+            const item = items[idx];
+            document.getElementById('flashcard-front').innerText = item.topic;
+            document.getElementById('flashcard-back').innerText = item.url ? 'メモ: ' + item.url : '（裏面なし）';
+            document.getElementById('flashcard-back').style.display = 'none';
+            showingBack = false;
+            document.getElementById('flashcard-again-form').style.display = 'none';
+            document.getElementById('flashcard-good-form').style.display = 'none';
+            document.getElementById('flashcard-progress').innerText = (idx+1) + ' / ' + items.length;
+        }
+        document.getElementById('show-flashcards').onclick = function() {
+            document.getElementById('flashcard-ui').style.display = '';
+            document.querySelector('.section:nth-of-type(3)').style.display = 'none';
+            showFlashcard(0);
+            flashIndex = 0;
+        };
+        document.getElementById('flashcard-card').onclick = function() {
+            if (items.length === 0) return;
+            if (!showingBack) {
+                document.getElementById('flashcard-back').style.display = '';
+                showingBack = true;
+                document.getElementById('flashcard-again-form').style.display = '';
+                document.getElementById('flashcard-good-form').style.display = '';
+            }
+        };
+        document.getElementById('flashcard-exit').onclick = function() {
+            document.getElementById('flashcard-ui').style.display = 'none';
+            document.querySelector('.section:nth-of-type(3)').style.display = '';
+        };
+        document.getElementById('flashcard-again-form').onsubmit = function(e) {
+            e.preventDefault();
+            fetch(`/review/${items[flashIndex].id}`, {method:'POST',body:new URLSearchParams({'confidence':'again'})})
+                .then(()=>{
+                    nextFlashcard();
+                });
+        };
+        document.getElementById('flashcard-good-form').onsubmit = function(e) {
+            e.preventDefault();
+            fetch(`/review/${items[flashIndex].id}`, {method:'POST',body:new URLSearchParams({'confidence':'good'})})
+                .then(()=>{
+                    nextFlashcard();
+                });
+        };
+        function nextFlashcard() {
+            flashIndex++;
+            if (flashIndex >= items.length) {
+                document.getElementById('flashcard-front').innerText = 'おしまい！';
+                document.getElementById('flashcard-back').style.display = 'none';
+                document.getElementById('flashcard-again-form').style.display = 'none';
+                document.getElementById('flashcard-good-form').style.display = 'none';
+                document.getElementById('flashcard-progress').innerText = '';
+            } else {
+                showFlashcard(flashIndex);
+            }
+        }
+        </script>
         {% if items_by_cat %}
             {% for category, items in items_by_cat.items() %}
                 <div class="cat-header">{{ category }}</div>
