@@ -191,7 +191,7 @@ def api_send_reminder():
     for item in items:
         by_cat[item.category].append(item)
     
-    msg = f"📚 [復習] {len(items)}件\n"
+    msg = f"復習 {len(items)}件あります！\n"
     for cat, cat_items in by_cat.items():
         msg += f"\n【{cat}】\n"
         for item in cat_items:
