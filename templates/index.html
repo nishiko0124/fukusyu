@@ -18,7 +18,7 @@
             padding: 16px;
             max-width: 600px;
             margin: 0 auto;
-            padding-bottom: 60px;
+            padding-bottom: 80px;
         }
         
         h1 {
@@ -53,7 +53,6 @@
             margin-bottom: 8px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.03);
         }
-        
         .card.urgent { border-left: 4px solid #ff6b6b; }
         
         .card-text {
@@ -73,14 +72,10 @@
             border-top: 1px dashed #eee;
         }
         
-        .card-meta {
-            font-size: 0.75rem;
-            color: #999;
-        }
+        .card-meta { font-size: 0.75rem; color: #999; }
 
         /* ボタン */
         button { cursor: pointer; font-family: inherit; }
-        
         .btn-sm {
             padding: 5px 14px;
             border: 1px solid #ddd;
@@ -89,30 +84,17 @@
             background: #fff;
             color: #555;
         }
-        
-        .btn-done {
-            background: #333;
-            color: #fff;
-            border-color: #333;
-            font-weight: bold;
-        }
-        
-        .btn-again {
-            color: #d32f2f;
-            border-color: #ffcdd2;
-            background: #fff;
-        }
+        .btn-done { background: #333; color: #fff; border-color: #333; font-weight: bold; }
+        .btn-again { color: #d32f2f; border-color: #ffcdd2; background: #fff; }
 
         /* 入力エリア */
         .section { margin-top: 40px; }
-        
         .add-area {
             background: #fff;
             padding: 16px;
             border-radius: 8px;
             border: 1px solid #eee;
         }
-        
         textarea {
             width: 100%;
             padding: 10px;
@@ -122,51 +104,53 @@
             resize: vertical;
             margin-bottom: 10px;
         }
-        
         .input-row { display: flex; gap: 8px; margin-bottom: 10px; }
         .input-cat { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
 
         /* 完了メッセージ */
         .empty-state {
-            text-align: center;
-            padding: 40px 0;
-            color: #aaa;
-            font-size: 0.9rem;
-            background: #fff;
-            border-radius: 8px;
-            border: 1px dashed #ddd;
+            text-align: center; padding: 40px 0; color: #aaa;
+            font-size: 0.9rem; background: #fff; border-radius: 8px; border: 1px dashed #ddd;
         }
 
-        /* フッターの簡易入力 */
-        .quick-record-section {
-            margin-top: 50px;
-            padding-top: 20px;
-            border-top: 4px double #eee;
+        /* 編集モーダル */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); z-index: 1000;
+            display: none; align-items: flex-end; justify-content: center;
         }
-        .quick-label {
-            font-size: 0.8rem;
-            color: #999;
-            text-align: center;
-            margin-bottom: 10px;
+        .modal-overlay.open { display: flex; }
+        
+        .modal-content {
+            background: #fff; width: 100%; max-width: 600px;
+            border-radius: 12px 12px 0 0; padding: 20px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            animation: slideUp 0.2s ease-out;
         }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        .modal-label { font-size: 0.8rem; font-weight: bold; color: #666; margin-bottom: 4px; }
+        .date-btns { display: flex; gap: 6px; margin-bottom: 12px; }
+        .date-btns button {
+            padding: 4px 8px; font-size: 0.75rem; background: #f0f0f0; border: none; border-radius: 4px;
+        }
+
+        /* 管理リストのスタイル */
+        .mgmt-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 0; border-bottom: 1px solid #f0f0f0;
+        }
+        .mgmt-text { flex: 1; font-size: 0.9rem; margin-right: 10px; cursor: pointer; color: #333; }
+        .mgmt-meta { font-size: 0.75rem; color: #999; margin-right: 8px; }
 
         /* メッセージ */
-        .flash {
-            padding: 10px 16px;
-            border-radius: 4px;
-            margin-bottom: 16px;
-            font-size: 0.9rem;
-        }
+        .flash { padding: 10px 16px; border-radius: 4px; margin-bottom: 16px; font-size: 0.9rem; }
         .flash.success { background: #d4edda; color: #155724; }
         .flash.info { background: #d1ecf1; color: #0c5460; }
-        .flash.danger { background: #f8d7da; color: #721c24; }
         
-        /* ツールリンク */
+        /* フッター */
         .footer-links {
-            text-align: center;
-            margin-top: 30px;
-            color: #ccc;
-            font-size: 0.75rem;
+            text-align: center; margin-top: 30px; color: #ccc; font-size: 0.75rem;
         }
         .footer-links button, .footer-links label {
             background: none; border: none; color: #999; cursor: pointer; margin: 0 5px;
@@ -238,25 +222,44 @@
 
     <div class="section" style="margin-top:20px;">
         <details>
-            <summary style="cursor:pointer; color:#999; padding:10px; font-size:0.85rem; text-align:center;">すべての項目を管理 ({{ all_items_by_cat.values() | map('length') | sum }})</summary>
-            <div style="margin-top:10px; background:#fff; border-radius:8px; border:1px solid #eee; padding:10px;">
-                {% for category, items in all_items_by_cat.items() %}
-                    <div style="font-size:0.8rem; font-weight:bold; color:#666; margin-top:10px; border-bottom:1px solid #f0f0f0;">{{ category }}</div>
-                    {% for item in items %}
-                    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f9f9f9;">
-                        <span style="flex:1; font-size:0.85rem; padding-right:8px;" onclick="editItem({{ item.id }})" id="text-{{ item.id }}">{{ item.topic }}</span>
-                        <form action="{{ url_for('delete_item', item_id=item.id) }}" method="POST" onsubmit="return confirm('削除しますか？');">
-                            <button type="submit" style="color:#ccc; background:none; border:none; font-size:1rem;">×</button>
-                        </form>
-                    </div>
+            <summary style="cursor:pointer; color:#999; padding:10px; font-size:0.85rem; text-align:center;">
+                すべての項目を管理 ({{ all_items_by_cat.values() | map('length') | sum }})
+            </summary>
+            
+            <div style="background:#fff; border-radius:8px; border:1px solid #eee; padding:16px; margin-top:10px;">
+                <div style="margin-bottom:16px;">
+                    <select id="cat-filter" onchange="filterItems(this.value)" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ddd; background:#f9f9f9;">
+                        <option value="ALL">すべてのカテゴリを表示</option>
+                        {% for category in all_items_by_cat.keys() %}
+                            <option value="{{ category }}">{{ category }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div id="mgmt-list">
+                    {% for category, items in all_items_by_cat.items() %}
+                        <div class="mgmt-group" data-cat="{{ category }}">
+                            <div style="font-size:0.8rem; font-weight:bold; color:#666; margin:12px 0 4px 0; border-bottom:1px solid #f0f0f0;">{{ category }}</div>
+                            {% for item in items %}
+                            <div class="mgmt-item">
+                                <div class="mgmt-text" onclick="openEditModal({{ item.id }}, `{{ item.topic|replace('`', '') }}`, `{{ item.category }}`, `{{ item.next_review_date.strftime('%Y-%m-%d') }}`)">
+                                    {{ item.topic }}
+                                </div>
+                                <span class="mgmt-meta" style="min-width:70px; text-align:right;">{{ item.next_review_date.strftime('%m/%d') }}</span>
+                                <form action="{{ url_for('delete_item', item_id=item.id) }}" method="POST" onsubmit="return confirm('削除しますか？');">
+                                    <button type="submit" style="color:#ccc; background:none; border:none; font-size:1.2rem;">×</button>
+                                </form>
+                            </div>
+                            {% endfor %}
+                        </div>
                     {% endfor %}
-                {% endfor %}
+                </div>
             </div>
         </details>
     </div>
 
-    <div class="quick-record-section">
-        <div class="quick-label">今日やったことをサクッと記録</div>
+    <div class="section" style="padding-top:20px; border-top:4px double #eee;">
+        <div style="font-size:0.8rem; color:#999; text-align:center; margin-bottom:10px;">今日やったことをサクッと記録</div>
         <form action="{{ url_for('add_item') }}" method="POST" style="display:flex; gap:8px;">
             <input type="hidden" name="category" value="ログ">
             <input type="text" name="topic" placeholder="例: 判例百選 45〜50" required style="flex:1; padding:8px; border:1px solid #ddd; border-radius:4px;">
@@ -270,7 +273,103 @@
         <label>復元 <input type="file" accept=".json" onchange="importData(event)" style="display:none;"></label>
     </div>
 
+    <div id="edit-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 style="margin-bottom:16px;">内容を編集</h3>
+            
+            <div class="modal-label">問題文</div>
+            <textarea id="edit-topic" rows="5" style="width:100%; border:1px solid #333;"></textarea>
+            
+            <div class="modal-label">カテゴリ</div>
+            <input type="text" id="edit-cat" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; margin-bottom:10px;">
+
+            <div class="modal-label">次回の復習日</div>
+            <div style="display:flex; gap:8px; align-items:center; margin-bottom:6px;">
+                <input type="date" id="edit-date" style="padding:6px; border:1px solid #ddd; border-radius:4px;">
+                <span id="date-diff" style="font-size:0.8rem; color:#888;"></span>
+            </div>
+            <div class="date-btns">
+                <button onclick="setDateOffset(0)">今日</button>
+                <button onclick="setDateOffset(1)">明日</button>
+                <button onclick="setDateOffset(3)">3日後</button>
+                <button onclick="setDateOffset(7)">来週</button>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button onclick="closeEditModal()" class="btn-sm" style="flex:1; padding:12px;">キャンセル</button>
+                <button onclick="saveEdit()" class="btn-sm btn-done" style="flex:1; padding:12px;">保存する</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // --- フィルタ機能 ---
+        function filterItems(val) {
+            const groups = document.querySelectorAll('.mgmt-group');
+            groups.forEach(g => {
+                if(val === 'ALL' || g.getAttribute('data-cat') === val) {
+                    g.style.display = 'block';
+                } else {
+                    g.style.display = 'none';
+                }
+            });
+        }
+
+        // --- 編集モーダル機能 ---
+        let currentEditId = null;
+        
+        function openEditModal(id, topic, cat, dateStr) {
+            currentEditId = id;
+            document.getElementById('edit-topic').value = topic;
+            document.getElementById('edit-cat').value = cat;
+            document.getElementById('edit-date').value = dateStr;
+            document.getElementById('edit-modal').classList.add('open');
+            document.getElementById('edit-topic').focus();
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-modal').classList.remove('open');
+            currentEditId = null;
+        }
+
+        function setDateOffset(days) {
+            const d = new Date();
+            d.setDate(d.getDate() + days);
+            const yyyy = d.getFullYear();
+            const mm = ('0'+(d.getMonth()+1)).slice(-2);
+            const dd = ('0'+d.getDate()).slice(-2);
+            document.getElementById('edit-date').value = `${yyyy}-${mm}-${dd}`;
+        }
+
+        async function saveEdit() {
+            if(!currentEditId) return;
+            const topic = document.getElementById('edit-topic').value;
+            const cat = document.getElementById('edit-cat').value;
+            const dateVal = document.getElementById('edit-date').value;
+
+            // 1. 内容とカテゴリの更新（既存のフォーム送信をJSで模倣）
+            const formData = new URLSearchParams();
+            formData.append('topic', topic);
+            formData.append('url', ''); // メモ機能は統合していないので空
+            formData.append('category', cat);
+
+            // 2. 日付の更新
+            const dateData = new URLSearchParams();
+            dateData.append('new_date', dateVal);
+
+            try {
+                // 並行して送信
+                await Promise.all([
+                    fetch(`/edit/${currentEditId}`, { method: 'POST', body: formData }),
+                    fetch(`/update_date/${currentEditId}`, { method: 'POST', body: dateData })
+                ]);
+                location.reload();
+            } catch(e) {
+                alert('エラーが発生しました');
+            }
+        }
+
+        // --- その他 ---
         async function sendNow() {
             const r = await fetch('/api/send-reminder', { method: 'POST' });
             const d = await r.json();
@@ -281,35 +380,16 @@
             const r = await fetch('/api/export');
             const data = await r.json();
             const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'backup_' + new Date().toISOString().slice(0,10) + '.json';
-            a.click();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+            a.download = 'backup.json'; a.click();
         }
         
         async function importData(event) {
             if (!confirm('バックアップから復元しますか？')) return;
             const file = event.target.files[0];
             const text = await file.text();
-            await fetch('/api/import', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: text
-            });
+            await fetch('/api/import', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: text });
             location.reload();
-        }
-        
-        function editItem(id) {
-            const span = document.getElementById('text-' + id);
-            const current = span.textContent;
-            const res = prompt("編集:", current);
-            if (res && res !== current) {
-                fetch('/api/edit/' + id, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({topic: res})
-                }).then(()=> span.textContent = res);
-            }
         }
     </script>
 </body>
