@@ -3,229 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>復習</title>
+    <title>復習リスト</title>
     <link rel="manifest" href="/static/manifest.json">
-    <meta name="theme-color" content="#000">
+    <meta name="theme-color" content="#ffffff">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Yu Gothic", YuGothic, sans-serif;
+            background: #f8f9fa;
             color: #333;
             line-height: 1.5;
             padding: 16px;
-            max-width: 500px;
+            max-width: 600px;
             margin: 0 auto;
+            padding-bottom: 60px;
         }
         
-        h1 { font-size: 1.3rem; margin-bottom: 16px; }
-        
-        .section { margin-bottom: 24px; }
-        
-        .label {
-            font-size: 0.7rem;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
+        h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+            color: #1a1a1a;
         }
         
-        /* 入力 */
-        .add-box {
+        /* カテゴリヘッダー */
+        .cat-header {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #444;
+            background: #e9ecef;
+            padding: 6px 10px;
+            margin: 20px 0 8px 0;
+            border-radius: 4px;
+            border-left: 4px solid #333;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        /* カード */
+        .card {
             background: #fff;
-            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
             padding: 12px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            margin-bottom: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+        
+        .card.urgent { border-left: 4px solid #ff6b6b; }
+        
+        .card-text {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 6px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed #eee;
+        }
+        
+        .card-meta {
+            font-size: 0.75rem;
+            color: #999;
+        }
+
+        /* ボタン */
+        button { cursor: pointer; font-family: inherit; }
+        
+        .btn-sm {
+            padding: 5px 14px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            background: #fff;
+            color: #555;
+        }
+        
+        .btn-done {
+            background: #333;
+            color: #fff;
+            border-color: #333;
+            font-weight: bold;
+        }
+        
+        .btn-again {
+            color: #d32f2f;
+            border-color: #ffcdd2;
+            background: #fff;
+        }
+
+        /* 入力エリア */
+        .section { margin-top: 40px; }
+        
+        .add-area {
+            background: #fff;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #eee;
         }
         
         textarea {
             width: 100%;
             padding: 10px;
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            font-size: 0.95rem;
-            font-family: inherit;
-            resize: none;
-            margin-bottom: 8px;
-        }
-        
-        textarea:focus { outline: none; border-color: #333; }
-        
-        .add-btns {
-            display: flex;
-            gap: 6px;
-        }
-        
-        .add-btns button {
-            flex: 1;
-            padding: 8px;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            cursor: pointer;
-        }
-        
-        .btn-dark { background: #333; color: #fff; }
-        .btn-light { background: #eee; color: #333; }
-        
-        /* カード */
-        .card {
-            background: #fff;
-            border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 8px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-        
-        .card.urgent { border-left: 3px solid #e53935; }
-        
-        .card-text {
-            font-size: 0.95rem;
-            margin-bottom: 8px;
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-        
-        .card-row {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-        
-        .card-meta {
-            font-size: 0.7rem;
-            color: #999;
-            flex: 1;
-        }
-        
-        .card-btns {
-            display: flex;
-            gap: 4px;
-        }
-        
-        .card-btns button {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 5px;
-            font-size: 0.8rem;
-            cursor: pointer;
-        }
-        
-        /* リスト項目 */
-        .item {
-            background: #fff;
-            border-radius: 8px;
-            padding: 10px 12px;
-            margin-bottom: 6px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-        
-        .item-top {
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            margin-bottom: 6px;
-        }
-        
-        .item-text {
-            flex: 1;
-            font-size: 0.9rem;
-            white-space: pre-wrap;
-            word-break: break-word;
-            line-height: 1.4;
-        }
-        
-        .cat-header {
-            font-size: 0.75rem;
-            color: #666;
-            background: #f0f0f0;
-            padding: 4px 10px;
-            margin: 12px 0 6px 0;
-            border-radius: 4px;
-        }
-        
-        .item-bottom {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.75rem;
-        }
-        
-        .item-bottom input[type="date"] {
-            padding: 4px 6px;
             border: 1px solid #ddd;
             border-radius: 4px;
-            font-size: 0.75rem;
+            font-size: 1rem;
+            resize: vertical;
+            margin-bottom: 10px;
         }
         
-        .item-bottom button {
-            padding: 4px 8px;
-            border: none;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            cursor: pointer;
-            background: #eee;
-            color: #666;
-        }
-        
-        .item-bottom .del { color: #c00; background: #fee; }
-        .item-bottom .edit { color: #333; background: #f5f5f5; }
-        
-        /* 通知 */
-        .notify {
-            background: #25D366;
-            color: #fff;
-            padding: 10px 12px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.85rem;
-        }
-        
-        .notify button {
-            background: rgba(255,255,255,0.2);
-            color: #fff;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.8rem;
-            cursor: pointer;
-        }
-        
-        /* フラッシュ */
-        .flash {
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 12px;
-            font-size: 0.85rem;
-        }
-        .flash.success { background: #f5f5f5; color: #333; }
-        .flash.danger { background: #f5f5f5; color: #666; }
-        .flash.info { background: #f5f5f5; color: #666; }
-        
-        /* 空 */
-        .empty {
+        .input-row { display: flex; gap: 8px; margin-bottom: 10px; }
+        .input-cat { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+
+        /* 完了メッセージ */
+        .empty-state {
             text-align: center;
-            padding: 30px;
+            padding: 40px 0;
+            color: #aaa;
+            font-size: 0.9rem;
+            background: #fff;
+            border-radius: 8px;
+            border: 1px dashed #ddd;
+        }
+
+        /* フッターの簡易入力 */
+        .quick-record-section {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 4px double #eee;
+        }
+        .quick-label {
+            font-size: 0.8rem;
             color: #999;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        /* メッセージ */
+        .flash {
+            padding: 10px 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
             font-size: 0.9rem;
         }
+        .flash.success { background: #d4edda; color: #155724; }
+        .flash.info { background: #d1ecf1; color: #0c5460; }
+        .flash.danger { background: #f8d7da; color: #721c24; }
         
-        .tag {
-            font-size: 0.65rem;
-            background: #f0f0f0;
-            padding: 2px 6px;
-            border-radius: 3px;
-            color: #666;
+        /* ツールリンク */
+        .footer-links {
+            text-align: center;
+            margin-top: 30px;
+            color: #ccc;
+            font-size: 0.75rem;
+        }
+        .footer-links button, .footer-links label {
+            background: none; border: none; color: #999; cursor: pointer; margin: 0 5px;
         }
     </style>
 </head>
 <body>
+    <h1>復習リスト</h1>
+
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
@@ -234,152 +184,28 @@
         {% endif %}
     {% endwith %}
 
-    <h1>復習</h1>
-    <!-- フラッシュカード表示ボタン＆UI -->
-    <div class="section" id="flashcard-section">
-        <button id="show-flashcards" class="btn-dark" style="width:100%;margin-bottom:8px;">フラッシュカードで表示</button>
-        <div id="flashcard-ui" style="display:none;">
-            <div id="flashcard-card" style="background:#fff;border-radius:10px;padding:24px 12px;box-shadow:0 1px 2px rgba(0,0,0,0.08);margin-bottom:12px;text-align:center;min-height:80px;cursor:pointer;">
-                <span id="flashcard-front"></span>
-                <span id="flashcard-back" style="display:none;"></span>
-            </div>
-            <div style="display:flex;gap:8px;">
-                <form id="flashcard-again-form" method="POST" style="flex:1;display:none;">
-                    <button type="submit" class="btn-light" style="width:100%;">もう1回</button>
-                </form>
-                <form id="flashcard-good-form" method="POST" style="flex:1;display:none;">
-                    <button type="submit" class="btn-dark" style="width:100%;">覚えた</button>
-                </form>
-            </div>
-            <div id="flashcard-progress" style="margin-top:8px;font-size:0.8rem;color:#888;"></div>
-            <button id="flashcard-exit" class="btn-light" style="width:100%;margin-top:12px;">リストに戻る</button>
-        </div>
-    </div>
-
-    <!-- 今日やったこと専用入力欄 -->
-    <div class="section">
-        <div class="add-box">
-            <form action="{{ url_for('add_item') }}" method="POST">
-                <input type="hidden" name="category" value="一般">
-                <textarea name="topic" rows="2" placeholder="今日はやったことを1行で記録" required style="margin-bottom:8px;"></textarea>
-                <div class="add-btns">
-                    <button type="submit" name="initial_confidence" value="good" class="btn-dark" style="width:100%;">記録</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- 追加 -->
-    <div class="section">
-        <div class="add-box">
-            <form action="{{ url_for('add_item') }}" method="POST">
-                <textarea name="topic" rows="4" placeholder="覚えたいこと..." required></textarea>
-                <div style="display:flex; gap:6px; margin-bottom:8px;">
-                    <input type="text" name="category" placeholder="カテゴリ（空なら一般）" style="flex:1; padding:8px; border:1px solid #e0e0e0; border-radius:6px; font-size:0.85rem;">
-                </div>
-                <div class="add-btns">
-                    <button type="submit" name="initial_confidence" value="again" class="btn-light">難しい</button>
-                    <button type="submit" name="initial_confidence" value="good" class="btn-dark">OK</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- 今日 -->
-    <div class="section">
-        <div class="label">今日やる ({{ items_by_cat.values() | map('length') | sum }})</div>
-
-        <script>
-        // --- フラッシュカードJS ---
-        const items = [];
-        {% for category, items in items_by_cat.items() %}
-            {% for item in items %}
-                items.push({
-                    id: {{ item.id }},
-                    topic: `{{ item.topic|e }}`,
-                    url: `{{ item.url|default('')|e }}`,
-                    category: `{{ item.category|e }}`
-                });
-            {% endfor %}
-        {% endfor %}
-        let flashIndex = 0;
-        let showingBack = false;
-        function showFlashcard(idx) {
-            if (items.length === 0) {
-                document.getElementById('flashcard-front').innerText = '今日の復習はありません';
-                document.getElementById('flashcard-back').style.display = 'none';
-                document.getElementById('flashcard-again-form').style.display = 'none';
-                document.getElementById('flashcard-good-form').style.display = 'none';
-                document.getElementById('flashcard-progress').innerText = '';
-                return;
-            }
-            const item = items[idx];
-            document.getElementById('flashcard-front').innerText = item.topic;
-            document.getElementById('flashcard-back').innerText = item.url ? 'メモ: ' + item.url : '（裏面なし）';
-            document.getElementById('flashcard-back').style.display = 'none';
-            showingBack = false;
-            document.getElementById('flashcard-again-form').style.display = 'none';
-            document.getElementById('flashcard-good-form').style.display = 'none';
-            document.getElementById('flashcard-progress').innerText = (idx+1) + ' / ' + items.length;
-        }
-        document.getElementById('show-flashcards').onclick = function() {
-            document.getElementById('flashcard-ui').style.display = '';
-            document.querySelector('.section:nth-of-type(3)').style.display = 'none';
-            showFlashcard(0);
-            flashIndex = 0;
-        };
-        document.getElementById('flashcard-card').onclick = function() {
-            if (items.length === 0) return;
-            if (!showingBack) {
-                document.getElementById('flashcard-back').style.display = '';
-                showingBack = true;
-                document.getElementById('flashcard-again-form').style.display = '';
-                document.getElementById('flashcard-good-form').style.display = '';
-            }
-        };
-        document.getElementById('flashcard-exit').onclick = function() {
-            document.getElementById('flashcard-ui').style.display = 'none';
-            document.querySelector('.section:nth-of-type(3)').style.display = '';
-        };
-        document.getElementById('flashcard-again-form').onsubmit = function(e) {
-            e.preventDefault();
-            fetch(`/review/${items[flashIndex].id}`, {method:'POST',body:new URLSearchParams({'confidence':'again'})})
-                .then(()=>{
-                    nextFlashcard();
-                });
-        };
-        document.getElementById('flashcard-good-form').onsubmit = function(e) {
-            e.preventDefault();
-            fetch(`/review/${items[flashIndex].id}`, {method:'POST',body:new URLSearchParams({'confidence':'good'})})
-                .then(()=>{
-                    nextFlashcard();
-                });
-        };
-        function nextFlashcard() {
-            flashIndex++;
-            if (flashIndex >= items.length) {
-                document.getElementById('flashcard-front').innerText = 'おしまい！';
-                document.getElementById('flashcard-back').style.display = 'none';
-                document.getElementById('flashcard-again-form').style.display = 'none';
-                document.getElementById('flashcard-good-form').style.display = 'none';
-                document.getElementById('flashcard-progress').innerText = '';
-            } else {
-                showFlashcard(flashIndex);
-            }
-        }
-        </script>
+    <div id="today-list">
         {% if items_by_cat %}
             {% for category, items in items_by_cat.items() %}
-                <div class="cat-header">{{ category }}</div>
+                <div class="cat-header">
+                    <span>{{ category }}</span>
+                    <span style="font-weight:normal; opacity:0.6;">{{ items|length }}</span>
+                </div>
                 {% for item in items %}
                 <div class="card {% if item.review_level == 0 and not item.is_completed %}urgent{% endif %}">
                     <div class="card-text">{{ item.topic }}</div>
-                    <div class="card-row">
-                        <span class="card-meta">{% if item.is_completed %}完了{% else %}Lv.{{ item.review_level }}{% endif %}</span>
-                        <div class="card-btns">
-                            <form action="{{ url_for('review_item', item_id=item.id) }}" method="POST" style="display:contents;">
-                                <button type="submit" name="confidence" value="again" class="btn-light">もう1回</button>
-                                <button type="submit" name="confidence" value="good" class="btn-dark">覚えた</button>
+                    {% if item.url %}<div style="font-size:0.8rem; color:#888; margin-bottom:4px;">Memo: {{ item.url }}</div>{% endif %}
+                    
+                    <div class="card-footer">
+                        <span class="card-meta">
+                            {% if item.is_completed %}完了確認{% else %}Lv.{{ item.review_level }}{% endif %}
+                        </span>
+                        <div style="display:flex; gap:8px;">
+                            <form action="{{ url_for('review_item', item_id=item.id) }}" method="POST">
+                                <button type="submit" name="confidence" value="again" class="btn-sm btn-again">パス</button>
+                            </form>
+                            <form action="{{ url_for('review_item', item_id=item.id) }}" method="POST">
+                                <button type="submit" name="confidence" value="good" class="btn-sm btn-done">OK</button>
                             </form>
                         </div>
                     </div>
@@ -387,50 +213,61 @@
                 {% endfor %}
             {% endfor %}
         {% else %}
-            <div class="empty">今日は完了</div>
+            <div class="empty-state">
+                <div style="font-size:1.5rem; margin-bottom:8px;">🎉</div>
+                今日の復習はすべて完了です
+            </div>
         {% endif %}
     </div>
 
-    <!-- 全部 -->
     <div class="section">
-        <div class="label">すべて ({{ all_items_by_cat.values() | map('length') | sum }})</div>
-        {% if all_items_by_cat %}
-            {% for category, items in all_items_by_cat.items() %}
-                <div class="cat-header">{{ category }} ({{ items | length }})</div>
-                {% for item in items %}
-                <div class="item">
-                    <div class="item-top">
-                        <span class="item-text" id="text-{{ item.id }}">{{ item.topic }}</span>
-                        <span class="tag">{% if item.is_completed %}完了{% else %}Lv.{{ item.review_level }}{% endif %}</span>
-                    </div>
-                    <div class="item-bottom">
-                        <button onclick="editItem({{ item.id }})" class="edit">編集</button>
-                        <form action="{{ url_for('update_date', item_id=item.id) }}" method="POST" style="display:contents;">
-                            <input type="date" name="new_date" value="{{ item.next_review_date.strftime('%Y-%m-%d') }}">
-                            <button type="submit">変更</button>
-                        </form>
-                        <form action="{{ url_for('delete_item', item_id=item.id) }}" method="POST" style="display:contents;" onsubmit="return confirm('削除する？');">
-                            <button type="submit" class="del">削除</button>
-                        </form>
-                    </div>
+        <h3 style="font-size:1rem; margin-bottom:10px; color:#555;">新規項目を追加</h3>
+        <div class="add-area">
+            <form action="{{ url_for('add_item') }}" method="POST">
+                <textarea name="topic" rows="3" placeholder="覚えたいことを入力..." required></textarea>
+                <div class="input-row">
+                    <input type="text" name="category" class="input-cat" placeholder="カテゴリ (例: 民法)">
                 </div>
-                {% endfor %}
-            {% endfor %}
-        {% else %}
-            <div class="empty">まだ項目なし</div>
-        {% endif %}
+                <div style="display:flex; gap:8px;">
+                    <button type="submit" name="initial_confidence" value="again" class="btn-sm" style="flex:1;">難しい (Lv.0)</button>
+                    <button type="submit" name="initial_confidence" value="good" class="btn-sm btn-done" style="flex:1;">OK (Lv.1)</button>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <!-- フッター -->
-    <div style="margin-top:40px; padding:16px 0; border-top:1px solid #eee; text-align:center;">
-        <button onclick="sendNow()" style="background:none; border:none; color:#999; font-size:0.75rem; cursor:pointer;">今すぐ通知</button>
-        <span style="color:#ddd; margin:0 8px;">|</span>
-        <button onclick="exportData()" style="background:none; border:none; color:#999; font-size:0.75rem; cursor:pointer;">バックアップ</button>
-        <span style="color:#ddd; margin:0 8px;">|</span>
-        <label style="background:none; border:none; color:#999; font-size:0.75rem; cursor:pointer;">
-            復元
-            <input type="file" accept=".json" onchange="importData(event)" style="display:none;">
-        </label>
+    <div class="section" style="margin-top:20px;">
+        <details>
+            <summary style="cursor:pointer; color:#999; padding:10px; font-size:0.85rem; text-align:center;">すべての項目を管理 ({{ all_items_by_cat.values() | map('length') | sum }})</summary>
+            <div style="margin-top:10px; background:#fff; border-radius:8px; border:1px solid #eee; padding:10px;">
+                {% for category, items in all_items_by_cat.items() %}
+                    <div style="font-size:0.8rem; font-weight:bold; color:#666; margin-top:10px; border-bottom:1px solid #f0f0f0;">{{ category }}</div>
+                    {% for item in items %}
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f9f9f9;">
+                        <span style="flex:1; font-size:0.85rem; padding-right:8px;" onclick="editItem({{ item.id }})" id="text-{{ item.id }}">{{ item.topic }}</span>
+                        <form action="{{ url_for('delete_item', item_id=item.id) }}" method="POST" onsubmit="return confirm('削除しますか？');">
+                            <button type="submit" style="color:#ccc; background:none; border:none; font-size:1rem;">×</button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </details>
+    </div>
+
+    <div class="quick-record-section">
+        <div class="quick-label">今日やったことをサクッと記録</div>
+        <form action="{{ url_for('add_item') }}" method="POST" style="display:flex; gap:8px;">
+            <input type="hidden" name="category" value="ログ">
+            <input type="text" name="topic" placeholder="例: 判例百選 45〜50" required style="flex:1; padding:8px; border:1px solid #ddd; border-radius:4px;">
+            <button type="submit" name="initial_confidence" value="good" class="btn-sm btn-done" style="white-space:nowrap;">記録</button>
+        </form>
+    </div>
+
+    <div class="footer-links">
+        <button onclick="sendNow()">通知テスト</button> |
+        <button onclick="exportData()">保存</button> |
+        <label>復元 <input type="file" accept=".json" onchange="importData(event)" style="display:none;"></label>
     </div>
 
     <script>
@@ -444,65 +281,35 @@
             const r = await fetch('/api/export');
             const data = await r.json();
             const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-            const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = 'fukusyu_backup_' + new Date().toISOString().slice(0,10) + '.json';
+            a.href = URL.createObjectURL(blob);
+            a.download = 'backup_' + new Date().toISOString().slice(0,10) + '.json';
             a.click();
         }
         
         async function importData(event) {
+            if (!confirm('バックアップから復元しますか？')) return;
             const file = event.target.files[0];
-            if (!file) return;
-            if (!confirm('バックアップから復元しますか？\n（既存データに追加されます）')) return;
             const text = await file.text();
-            const data = JSON.parse(text);
-            const r = await fetch('/api/import', {
+            await fetch('/api/import', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
+                body: text
             });
-            const result = await r.json();
-            if (result.success) {
-                alert(result.imported + '件復元しました');
-                location.reload();
-            } else {
-                alert('エラー: ' + result.error);
-            }
+            location.reload();
         }
         
         function editItem(id) {
             const span = document.getElementById('text-' + id);
             const current = span.textContent;
-            const textarea = document.createElement('textarea');
-            textarea.value = current;
-            textarea.style.cssText = 'width:100%; padding:6px; font-size:0.9rem; border:1px solid #333; border-radius:4px; resize:vertical; min-height:60px;';
-            textarea.rows = Math.max(3, current.split('\n').length + 1);
-            
-            textarea.onblur = async function() {
-                const newVal = textarea.value.trim();
-                if (newVal && newVal !== current) {
-                    const r = await fetch('/api/edit/' + id, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({topic: newVal})
-                    });
-                    if (r.ok) {
-                        span.textContent = newVal;
-                    }
-                }
-                span.style.display = '';
-                textarea.remove();
-            };
-            
-            textarea.onkeydown = function(e) {
-                if (e.key === 'Escape') { textarea.value = current; textarea.blur(); }
-                if (e.key === 'Enter' && e.metaKey) textarea.blur();
-            };
-            
-            span.style.display = 'none';
-            span.parentNode.insertBefore(textarea, span);
-            textarea.focus();
+            const res = prompt("編集:", current);
+            if (res && res !== current) {
+                fetch('/api/edit/' + id, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({topic: res})
+                }).then(()=> span.textContent = res);
+            }
         }
     </script>
 </body>
