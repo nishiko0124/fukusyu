@@ -177,7 +177,7 @@ def api_edit_item(item_id):
     return jsonify({'error': 'Error'}), 400
 
 # --- API: 通知送信 ---
-@app.route('/api/send-reminder', methods=['POST'])
+@app.route('/api/send-reminder', methods=['GET', 'POST'])
 def api_send_reminder():
     today = date.today()
     items = ReviewItem.query.filter(ReviewItem.next_review_date <= today).order_by(ReviewItem.category).all()
