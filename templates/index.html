@@ -60,7 +60,6 @@
             font-size: 1rem;
             font-weight: 500;
             margin-bottom: 6px;
-            /* ▼▼▼ 改行を反映させる設定 ▼▼▼ */
             white-space: pre-wrap; 
             word-break: break-word;
         }
@@ -140,7 +139,7 @@
 
         /* 管理リストのスタイル */
         .mgmt-item {
-            display: flex; justify-content: space-between; align-items: flex-start; /* 上寄せに変更 */
+            display: flex; justify-content: space-between; align-items: flex-start;
             padding: 10px 0; border-bottom: 1px solid #f0f0f0;
         }
         .mgmt-text {
@@ -149,7 +148,6 @@
             margin-right: 10px;
             cursor: pointer;
             color: #333;
-            /* ▼▼▼ リストでも改行を反映させる ▼▼▼ */
             white-space: pre-wrap;
             word-break: break-word;
         }
@@ -254,14 +252,7 @@
                             <div style="font-size:0.8rem; font-weight:bold; color:#666; margin:12px 0 4px 0; border-bottom:1px solid #f0f0f0;">{{ category }}</div>
                             {% for item in items %}
                             <div class="mgmt-item">
-                                <div class="mgmt-text" 
-                                     data-id="{{ item.id }}" 
-                                     data-topic="{{ item.topic }}" 
-                                     data-cat="{{ item.category }}" 
-                                     data-date="{{ item.next_review_date.strftime('%Y-%m-%d') }}"
-                                     onclick="openEditFromEl(this)">
-                                    {{ item.topic }}
-                                </div>
+                                <div class="mgmt-text" data-id="{{ item.id }}" data-topic="{{ item.topic }}" data-cat="{{ item.category }}" data-date="{{ item.next_review_date.strftime('%Y-%m-%d') }}" onclick="openEditFromEl(this)">{{ item.topic }}</div>
                                 <span class="mgmt-meta" style="min-width:70px; text-align:right;">{{ item.next_review_date.strftime('%m/%d') }}</span>
                                 <form action="{{ url_for('delete_item', item_id=item.id) }}" method="POST" onsubmit="return confirm('削除しますか？');">
                                     <button type="submit" style="color:#ccc; background:none; border:none; font-size:1.2rem;">×</button>
@@ -335,7 +326,6 @@
         // --- 編集モーダル機能 ---
         let currentEditId = null;
         
-        // 改行を含んでも安全にデータを取得するために属性から読み込む
         function openEditFromEl(el) {
             currentEditId = el.getAttribute('data-id');
             const topic = el.getAttribute('data-topic');
