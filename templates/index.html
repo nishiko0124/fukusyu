@@ -11,10 +11,13 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Yu Gothic", YuGothic, sans-serif;
+            /* ▼▼▼ フォント設定を変更しました ▼▼▼ */
+            font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+            font-feature-settings: "palt"; /* 文字詰めを美しく */
+            
             background: #f8f9fa;
             color: #333;
-            line-height: 1.5;
+            line-height: 1.6; /* 読みやすく少し広げました */
             padding: 16px;
             max-width: 600px;
             margin: 0 auto;
@@ -103,9 +106,10 @@
             font-size: 1rem;
             resize: vertical;
             margin-bottom: 10px;
+            font-family: inherit; /* フォーム内もフォント継承 */
         }
         .input-row { display: flex; gap: 8px; margin-bottom: 10px; }
-        .input-cat { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .input-cat { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; }
 
         /* 完了メッセージ */
         .empty-state {
@@ -228,7 +232,7 @@
             
             <div style="background:#fff; border-radius:8px; border:1px solid #eee; padding:16px; margin-top:10px;">
                 <div style="margin-bottom:16px;">
-                    <select id="cat-filter" onchange="filterItems(this.value)" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ddd; background:#f9f9f9;">
+                    <select id="cat-filter" onchange="filterItems(this.value)" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ddd; background:#f9f9f9; font-family:inherit;">
                         <option value="ALL">すべてのカテゴリを表示</option>
                         {% for category in all_items_by_cat.keys() %}
                             <option value="{{ category }}">{{ category }}</option>
@@ -262,7 +266,7 @@
         <div style="font-size:0.8rem; color:#999; text-align:center; margin-bottom:10px;">今日やったことをサクッと記録</div>
         <form action="{{ url_for('add_item') }}" method="POST" style="display:flex; gap:8px;">
             <input type="hidden" name="category" value="ログ">
-            <input type="text" name="topic" placeholder="例: 判例百選 45〜50" required style="flex:1; padding:8px; border:1px solid #ddd; border-radius:4px;">
+            <input type="text" name="topic" placeholder="例: 判例百選 45〜50" required style="flex:1; padding:8px; border:1px solid #ddd; border-radius:4px; font-family:inherit;">
             <button type="submit" name="initial_confidence" value="good" class="btn-sm btn-done" style="white-space:nowrap;">記録</button>
         </form>
     </div>
@@ -281,11 +285,11 @@
             <textarea id="edit-topic" rows="5" style="width:100%; border:1px solid #333;"></textarea>
             
             <div class="modal-label">カテゴリ</div>
-            <input type="text" id="edit-cat" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; margin-bottom:10px;">
+            <input type="text" id="edit-cat" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; margin-bottom:10px; font-family:inherit;">
 
             <div class="modal-label">次回の復習日</div>
             <div style="display:flex; gap:8px; align-items:center; margin-bottom:6px;">
-                <input type="date" id="edit-date" style="padding:6px; border:1px solid #ddd; border-radius:4px;">
+                <input type="date" id="edit-date" style="padding:6px; border:1px solid #ddd; border-radius:4px; font-family:inherit;">
                 <span id="date-diff" style="font-size:0.8rem; color:#888;"></span>
             </div>
             <div class="date-btns">
@@ -347,10 +351,10 @@
             const cat = document.getElementById('edit-cat').value;
             const dateVal = document.getElementById('edit-date').value;
 
-            // 1. 内容とカテゴリの更新（既存のフォーム送信をJSで模倣）
+            // 1. 内容とカテゴリの更新
             const formData = new URLSearchParams();
             formData.append('topic', topic);
-            formData.append('url', ''); // メモ機能は統合していないので空
+            formData.append('url', '');
             formData.append('category', cat);
 
             // 2. 日付の更新
@@ -358,7 +362,6 @@
             dateData.append('new_date', dateVal);
 
             try {
-                // 並行して送信
                 await Promise.all([
                     fetch(`/edit/${currentEditId}`, { method: 'POST', body: formData }),
                     fetch(`/update_date/${currentEditId}`, { method: 'POST', body: dateData })
