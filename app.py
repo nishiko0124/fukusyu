@@ -9,7 +9,7 @@ from collections import defaultdict
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a-default-secret-key')
 
-# DATABASE_URL の処理（Railwayのpostgres://をpostgresql://に変換）
+# DATABASE_URL の処理
 database_url = os.environ.get('DATABASE_URL', 'sqlite:///reviews.db')
 if database_url.startswith('postgres://'):
     database_url = database_url.replace('postgres://', 'postgresql://', 1)
@@ -23,10 +23,12 @@ LINE_USER_ID = os.environ.get('LINE_USER_ID')
 
 db = SQLAlchemy(app)
 
-# --- ★★★ 復習間隔をここで自由に設定 ★★★ ---
-# Lv.0〜3の4段階、完了後は30日ループ
-REVIEW_INTERVALS_DAYS = [1, 3, 7, 16]  # Lv.0〜3
-COMPLETED_INTERVAL = 30  # 完了後のループ間隔
+# --- ★★★ 復習間隔の設定（ここを変更しました） ★★★ ---
+# 1日後(Lv0) -> 3日後(Lv1) -> 7日後(Lv2) -> 14日後(Lv3) -> 30日後(Lv4) -> 完了
+REVIEW_INTERVALS_DAYS = [1, 3, 7, 14, 30]
+
+# 完了後、または上記リストを超えた後のループ間隔
+COMPLETED_INTERVAL = 30
 
 
 # --- データベースのモデル定義 ---
@@ -38,7 +40,7 @@ class ReviewItem(db.Model):
     date_added = db.Column(db.Date, nullable=False, default=date.today)
     review_level = db.Column(db.Integer, nullable=False, default=0)
     next_review_date = db.Column(db.Date, nullable=False)
-    is_completed = db.Column(db.Boolean, nullable=False, default=False)  # 完了フラグ
+    is_completed = db.Column(db.Boolean, nullable=False, default=False)
 
     def __repr__(self):
         return f'<ReviewItem {self.topic}>'
@@ -70,63 +72,67 @@ def add_item():
         url = request.form.get('url')
         category = request.form.get('category', '一般').strip()
         initial_confidence = request.form.get('initial_confidence', 'again')
+        
         if not topic:
             flash("項目名は必須だよ。。", "danger")
             return redirect(url_for('index'))
         if not category:
             category = '一般'
+            
+        # 初期レベルの設定
         review_level = 0
-        interval_days = REVIEW_INTERVALS_DAYS[0]
+        interval_days = REVIEW_INTERVALS_DAYS[0] # デフォルトは1日後
+        
+        # 「OK（Lv.1）」で登録した場合、次のステップ（3日後）からスタート
         if initial_confidence == 'good' and len(REVIEW_INTERVALS_DAYS) > 1:
             review_level = 1
             interval_days = REVIEW_INTERVALS_DAYS[1]
+            
         new_item = ReviewItem(
             topic=topic, url=url, category=category, review_level=review_level,
             next_review_date=date.today() + timedelta(days=interval_days)
         )
         db.session.add(new_item)
         db.session.commit()
-        flash(f"追加しました", "success")
-        if 'bookmarklet' in request.args:
-            return "<script>window.close();</script>"
+        flash(f"追加しました（次は{interval_days}日後）", "success")
         return redirect(url_for('index'))
-    initial_topic = request.args.get('title', '')
-    initial_url = request.args.get('url', '')
-    return render_template('add_form.html', initial_topic=initial_topic, initial_url=initial_url)
+    return render_template('add_form.html') # 通常はindexから呼ばれるのでここはあまり使われない
 
 # --- 「復習完了」ボタンの処理 ---
 @app.route('/review/<int:item_id>', methods=['POST'])
 def review_item(item_id):
     item = ReviewItem.query.get_or_404(item_id)
     confidence = request.form.get('confidence')
+    
     if confidence == 'again':
-        # もう1回: 完了解除、Lv.0に戻る
+        # 忘れた場合: Lv.0（1日後）に戻る
         item.review_level = 0
         item.is_completed = False
         interval_days = REVIEW_INTERVALS_DAYS[0]
         item.next_review_date = date.today() + timedelta(days=interval_days)
-        flash(f"もう1回", "info")
+        flash(f"リセットしました（次は明日）", "info")
     else:
-        # 覚えた
+        # 覚えた場合
         if item.is_completed:
-            # 既に完了済み: 30日後にループ
+            # 完了済みのループ: 30日後
             item.next_review_date = date.today() + timedelta(days=COMPLETED_INTERVAL)
-            flash(f"完了", "success")
+            flash(f"完了維持（次は{COMPLETED_INTERVAL}日後）", "success")
         elif item.review_level >= len(REVIEW_INTERVALS_DAYS) - 1:
-            # 最終レベルクリア: 完了に
+            # 最終レベル到達: 完了モードへ
             item.is_completed = True
             item.next_review_date = date.today() + timedelta(days=COMPLETED_INTERVAL)
-            flash(f"完了", "success")
+            flash(f"全課程終了！次は{COMPLETED_INTERVAL}日後", "success")
         else:
-            # 次のレベルへ
+            # 次のレベルへ昇格
             item.review_level += 1
             interval_days = REVIEW_INTERVALS_DAYS[item.review_level]
             item.next_review_date = date.today() + timedelta(days=interval_days)
-            flash(f"覚えた", "success")
+            flash(f"レベルアップ！次は{interval_days}日後", "success")
+            
     db.session.commit()
     return redirect(url_for('index'))
 
-# --- 復習日を直接更新する処理 ---
+# --- 復習日を直接更新 ---
 @app.route('/update_date/<int:item_id>', methods=['POST'])
 def update_date(item_id):
     item = ReviewItem.query.get_or_404(item_id)
@@ -136,200 +142,70 @@ def update_date(item_id):
             new_date = datetime.strptime(new_date_str, '%Y-%m-%d').date()
             item.next_review_date = new_date
             db.session.commit()
-            flash(f"「{item.topic}」の次回復習日を{new_date_str}に変更しました。", "success")
         except ValueError:
-            flash("日付の形式が正しくありません。", "danger")
+            pass
     return redirect(url_for('index'))
 
-# --- 項目を削除する処理 ---
+# --- 項目削除 ---
 @app.route('/delete/<int:item_id>', methods=['POST'])
 def delete_item(item_id):
     item = ReviewItem.query.get_or_404(item_id)
     db.session.delete(item)
     db.session.commit()
-    flash(f"「{item.topic}」を削除しました。", "info")
     return redirect(url_for('index'))
 
-# --- ★★★【新機能】項目を編集する処理 ★★★ ---
-@app.route('/edit/<int:item_id>', methods=['GET', 'POST'])
+# --- 項目編集（HTMLフォーム用/旧互換） ---
+@app.route('/edit/<int:item_id>', methods=['POST'])
 def edit_item(item_id):
     item = ReviewItem.query.get_or_404(item_id)
     if request.method == 'POST':
-        # POSTリクエスト: フォームから送信されたデータで更新
-        item.topic = request.form['topic']
-        item.url = request.form['url']
-        item.category = request.form.get('category', '一般').strip()
-        if not item.category:
-            item.category = '一般'
-
+        item.topic = request.form.get('topic', item.topic)
+        item.url = request.form.get('url', item.url)
+        item.category = request.form.get('category', '一般').strip() or '一般'
         db.session.commit()
-        flash(f"「{item.topic}」を更新しました。", "success")
-        return redirect(url_for('index'))
+    return redirect(url_for('index'))
 
-    # GETリクエスト: 編集ページを表示
-    return render_template('edit_item.html', item=item)
-
-# --- ブックマークレットの説明ページ ---
-@app.route('/bookmarklet')
-def bookmarklet():
-    return render_template('bookmarklet.html')
-
-# --- ★★★【API】復習待ちの項目数を取得 ★★★ ---
-@app.route('/api/pending-reviews')
-def api_pending_reviews():
-    today = date.today()
-    items = ReviewItem.query.filter(ReviewItem.next_review_date <= today).all()
-    return jsonify({
-        'count': len(items),
-        'items': [{
-            'id': item.id,
-            'topic': item.topic,
-            'category': item.category,
-            'next_review_date': item.next_review_date.strftime('%Y-%m-%d'),
-            'review_level': item.review_level
-        } for item in items]
-    })
-
-# --- ★★★【API】項目を編集（インライン用） ★★★ ---
+# --- API: 編集（インライン用） ---
 @app.route('/api/edit/<int:item_id>', methods=['POST'])
 def api_edit_item(item_id):
     item = ReviewItem.query.get_or_404(item_id)
     data = request.get_json()
     if data and data.get('topic'):
         item.topic = data['topic'].strip()
-        if data.get('url') is not None:
-            item.url = data['url']
         db.session.commit()
-        return jsonify({'success': True, 'topic': item.topic})
-    return jsonify({'error': '項目名は必須だよ。'}), 400
+        return jsonify({'success': True})
+    return jsonify({'error': 'Error'}), 400
 
-# --- ★★★【API】全項目を取得 ★★★ ---
-@app.route('/api/items')
-def api_items():
-    items = ReviewItem.query.order_by(ReviewItem.next_review_date).all()
-    return jsonify({
-        'items': [{
-            'id': item.id,
-            'topic': item.topic,
-            'url': item.url,
-            'category': item.category,
-            'date_added': item.date_added.strftime('%Y-%m-%d'),
-            'next_review_date': item.next_review_date.strftime('%Y-%m-%d'),
-            'review_level': item.review_level
-        } for item in items]
-    })
+# --- API: 通知送信 ---
+@app.route('/api/send-reminder', methods=['POST'])
+def api_send_reminder():
+    today = date.today()
+    items = ReviewItem.query.filter(ReviewItem.next_review_date <= today).order_by(ReviewItem.category).all()
+    
+    if not items:
+        send_line_message("今日の復習はありません🎉")
+        return jsonify({'success': True, 'message': '復習なし'})
+    
+    # カテゴリ別に整理
+    by_cat = defaultdict(list)
+    for item in items:
+        by_cat[item.category].append(item)
+    
+    msg = f"📚 [復習] {len(items)}件\n"
+    for cat, cat_items in by_cat.items():
+        msg += f"\n【{cat}】\n"
+        for item in cat_items:
+            msg += f"・{item.topic}\n"
+    
+    msg += "\nhttps://fukusyu-production.up.railway.app/"
+    
+    res, detail = send_line_message(msg)
+    return jsonify({'success': res, 'message': detail})
 
-# --- ★★★【API】バックアップエクスポート ★★★ ---
-@app.route('/api/export')
-def api_export():
-    items = ReviewItem.query.all()
-    data = {
-        'exported_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        'items': [{
-            'topic': item.topic,
-            'url': item.url,
-            'category': item.category,
-            'date_added': item.date_added.strftime('%Y-%m-%d'),
-            'next_review_date': item.next_review_date.strftime('%Y-%m-%d'),
-            'review_level': item.review_level
-        } for item in items]
-    }
-    return jsonify(data)
-
-# --- ★★★【API】バックアップインポート ★★★ ---
-@app.route('/api/import', methods=['POST'])
-def api_import():
-    data = request.get_json()
-    if not data or 'items' not in data:
-        return jsonify({'error': '無効なデータ'}), 400
-    
-    imported = 0
-    for item_data in data['items']:
-        if not item_data.get('topic'):
-            continue
-        new_item = ReviewItem(
-            topic=item_data['topic'],
-            url=item_data.get('url', ''),
-            category=item_data.get('category', '一般'),
-            date_added=datetime.strptime(item_data.get('date_added', date.today().strftime('%Y-%m-%d')), '%Y-%m-%d').date(),
-            next_review_date=datetime.strptime(item_data.get('next_review_date', date.today().strftime('%Y-%m-%d')), '%Y-%m-%d').date(),
-            review_level=item_data.get('review_level', 0)
-        )
-        db.session.add(new_item)
-        imported += 1
-    
-    db.session.commit()
-    return jsonify({'success': True, 'imported': imported})
-
-# --- ★★★【API】項目を追加（JSON対応） ★★★ ---
-@app.route('/api/add', methods=['POST'])
-def api_add_item():
-    data = request.get_json()
-    if not data or not data.get('topic'):
-        return jsonify({'error': '項目名は必須だよ。'}), 400
-    
-    topic = data.get('topic')
-    url = data.get('url', '')
-    category = data.get('category', '一般').strip() or '一般'
-    initial_confidence = data.get('initial_confidence', 'again')
-    
-    review_level = 0
-    interval_days = REVIEW_INTERVALS_DAYS[0]
-    if initial_confidence == 'good' and len(REVIEW_INTERVALS_DAYS) > 1:
-        review_level = 1
-        interval_days = REVIEW_INTERVALS_DAYS[1]
-    
-    new_item = ReviewItem(
-        topic=topic, url=url, category=category, review_level=review_level,
-        next_review_date=date.today() + timedelta(days=interval_days)
-    )
-    db.session.add(new_item)
-    db.session.commit()
-    
-    return jsonify({
-        'success': True,
-        'item': {
-            'id': new_item.id,
-            'topic': new_item.topic,
-            'next_review_date': new_item.next_review_date.strftime('%Y-%m-%d'),
-            'interval_days': interval_days
-        }
-    })
-
-# --- ★★★【API】復習完了 ★★★ ---
-@app.route('/api/review/<int:item_id>', methods=['POST'])
-def api_review_item(item_id):
-    item = ReviewItem.query.get_or_404(item_id)
-    data = request.get_json() or {}
-    confidence = data.get('confidence', 'good')
-    
-    if confidence == 'again':
-        item.review_level = 0
-        interval_days = REVIEW_INTERVALS_DAYS[0]
-    else:
-        if item.review_level < len(REVIEW_INTERVALS_DAYS) - 1:
-            item.review_level += 1
-        interval_days = REVIEW_INTERVALS_DAYS[item.review_level]
-    
-    item.next_review_date = date.today() + timedelta(days=interval_days)
-    db.session.commit()
-    
-    return jsonify({
-        'success': True,
-        'item': {
-            'id': item.id,
-            'topic': item.topic,
-            'next_review_date': item.next_review_date.strftime('%Y-%m-%d'),
-            'review_level': item.review_level,
-            'interval_days': interval_days
-        }
-    })
-
-# --- ★★★【LINE Messaging API】★★★ ---
+# --- LINE送信関数 ---
 def send_line_message(message):
-    """LINE Messaging APIでプッシュ通知を送信"""
     if not LINE_CHANNEL_ACCESS_TOKEN or not LINE_USER_ID:
-        return False, "環境変数が設定されていません"
+        return False, "LINE設定がありません"
     
     url = 'https://api.line.me/v2/bot/message/push'
     headers = {
@@ -338,104 +214,45 @@ def send_line_message(message):
     }
     data = {
         'to': LINE_USER_ID,
-        'messages': [{
-            'type': 'text',
-            'text': message
-        }]
+        'messages': [{'type': 'text', 'text': message}]
     }
-    
     try:
-        response = requests.post(url, headers=headers, json=data)
-        if response.status_code == 200:
-            return True, "送信成功"
-        else:
-            return False, f"エラー: {response.status_code} - {response.text}"
+        r = requests.post(url, headers=headers, json=data)
+        return r.status_code == 200, r.text
     except Exception as e:
-        return False, f"例外: {str(e)}"
+        return False, str(e)
 
-# デバッグ用: 環境変数の確認
-@app.route('/api/debug-line')
-def debug_line():
-    return jsonify({
-        'token_set': bool(LINE_CHANNEL_ACCESS_TOKEN),
-        'token_preview': LINE_CHANNEL_ACCESS_TOKEN[:20] + '...' if LINE_CHANNEL_ACCESS_TOKEN else None,
-        'user_id_set': bool(LINE_USER_ID),
-        'user_id': LINE_USER_ID
-    })
+# --- バックアップ機能 ---
+@app.route('/api/export')
+def api_export():
+    items = ReviewItem.query.all()
+    data = {'items': [{
+        'topic': i.topic, 'url': i.url, 'category': i.category,
+        'date_added': i.date_added.strftime('%Y-%m-%d'),
+        'next_review_date': i.next_review_date.strftime('%Y-%m-%d'),
+        'review_level': i.review_level
+    } for i in items]}
+    return jsonify(data)
 
-@app.route('/api/send-reminder', methods=['POST'])
-def api_send_reminder():
-    """今日の復習項目をLINEで通知（カテゴリ別）"""
-    today = date.today()
-    items = ReviewItem.query.filter(ReviewItem.next_review_date <= today).order_by(ReviewItem.category).all()
-    
-    if not items:
-        success, detail = send_line_message("[復習] 今日の復習はありません")
-        return jsonify({
-            'success': success,
-            'message': '通知を送信しました' if success else f'エラー: {detail}',
-            'detail': detail
-        })
-    
-    # カテゴリ別に整理
-    by_cat = defaultdict(list)
-    for item in items:
-        by_cat[item.category].append(item)
-    
-    message = f"[復習] {len(items)}件\n"
-    
-    for cat, cat_items in by_cat.items():
-        message += f"\n[{cat}]\n"
-        for item in cat_items:
-            # Lvも表示
-            message += f"- {item.topic} (Lv.{item.review_level})\n"
-    
-    message += f"\nhttps://fukusyu-production.up.railway.app/"
-    
-    success, detail = send_line_message(message)
-    
-    return jsonify({
-        'success': success,
-        'count': len(items),
-        'message': 'LINE通知を送信しました' if success else f'LINE通知エラー: {detail}'
-    })
+@app.route('/api/import', methods=['POST'])
+def api_import():
+    data = request.get_json()
+    if not data or 'items' not in data: return jsonify({'error': 'No data'}), 400
+    for d in data['items']:
+        if not d.get('topic'): continue
+        db.session.add(ReviewItem(
+            topic=d['topic'], url=d.get('url',''), category=d.get('category','一般'),
+            date_added=datetime.strptime(d.get('date_added', date.today().strftime('%Y-%m-%d')), '%Y-%m-%d').date(),
+            next_review_date=datetime.strptime(d.get('next_review_date', date.today().strftime('%Y-%m-%d')), '%Y-%m-%d').date(),
+            review_level=d.get('review_level', 0)
+        ))
+    db.session.commit()
+    return jsonify({'success': True})
 
-@app.route('/api/cron-reminder')
-def cron_reminder():
-    """外部cronサービスから呼び出し用（GETでもOK）"""
-    today = date.today()
-    items = ReviewItem.query.filter(ReviewItem.next_review_date <= today).order_by(ReviewItem.category).all()
-    
-    if not items:
-        return jsonify({'success': True, 'message': '今日の復習はありません', 'count': 0})
-    
-    # カテゴリ別に整理
-    by_cat = defaultdict(list)
-    for item in items:
-        by_cat[item.category].append(item)
-    
-    message = f"[復習] {len(items)}件\n"
-    
-    for cat, cat_items in by_cat.items():
-        message += f"\n[{cat}]\n"
-        for item in cat_items:
-            message += f"- {item.topic}\n"
-    
-    message += f"\nhttps://fukusyu-production.up.railway.app/"
-    
-    success, detail = send_line_message(message)
-    
-    return jsonify({
-        'success': success,
-        'count': len(items),
-        'detail': detail
-    })
-
-# --- データベース初期化 ---
+# --- DB初期化 ---
 with app.app_context():
     db.create_all()
 
 if __name__ == '__main__':
-    import os
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
